@@ -1,12 +1,15 @@
 import { writable, derived } from 'svelte/store';
 import { browser } from '$app/environment';
+import { supabase, isSupabaseConfigured } from '$lib/supabase/client.js';
 
 /**
  * Session store - manages conversation state and cards
  * Persists to localStorage automatically
+ * Syncs to Supabase for authenticated users
  */
 
 const STORAGE_KEY = 'act-of-imagination-session';
+const CARDS_STORAGE_KEY = 'act-of-imagination-cards';
 
 // Default session state
 function createDefaultSession() {
@@ -71,10 +74,53 @@ function saveSession(state) {
 				updatedAt: Date.now()
 			};
 			localStorage.setItem(STORAGE_KEY, JSON.stringify(toSave));
+
+			// Also save cards separately for the cards service
+			localStorage.setItem(CARDS_STORAGE_KEY, JSON.stringify(state.cards));
 		} catch (e) {
 			console.warn('Failed to save session to localStorage:', e);
 		}
 	}, 500);
+}
+
+// Sync to Supabase (debounced, for authenticated users)
+let syncTimeout = null;
+async function syncToSupabase(state) {
+	if (!browser || !isSupabaseConfigured()) return;
+
+	// Clear pending sync
+	if (syncTimeout) clearTimeout(syncTimeout);
+
+	// Debounce syncs more aggressively (2 seconds)
+	syncTimeout = setTimeout(async () => {
+		try {
+			const { data: { user } } = await supabase.auth.getUser();
+			if (!user) return;
+
+			// Sync cards
+			for (const card of state.cards) {
+				await supabase
+					.from('cards')
+					.upsert({
+						id: card.id,
+						user_id: user.id,
+						session_id: state.id,
+						name: card.name,
+						essence: card.essence,
+						hint: card.hint,
+						type: card.type,
+						formation_state: card.formationState,
+						depth: card.depth,
+						source_excerpts: card.sourceExcerpts || [],
+						surfaced_at: card.surfacedAt ? new Date(card.surfacedAt).toISOString() : null
+					}, {
+						onConflict: 'id'
+					});
+			}
+		} catch (e) {
+			console.warn('Failed to sync to Supabase:', e);
+		}
+	}, 2000);
 }
 
 function createSessionStore() {
@@ -84,6 +130,7 @@ function createSessionStore() {
 	// Subscribe to changes and persist
 	subscribe(state => {
 		saveSession(state);
+		syncToSupabase(state);
 	});
 
 	return {
@@ -271,6 +318,98 @@ function createSessionStore() {
 		// Change session phase
 		setPhase: (phase) => {
 			update(state => ({ ...state, phase }));
+		},
+
+		// === DEV PANEL METHODS ===
+
+		// Add a card directly (for dev panel)
+		addCard: (card) => {
+			update(state => ({
+				...state,
+				cards: [...state.cards, {
+					id: crypto.randomUUID(),
+					createdAt: Date.now(),
+					surfacedAt: card.formationState === 'surfaced' ? Date.now() : null,
+					...card
+				}],
+				updatedAt: Date.now()
+			}));
+		},
+
+		// Update a specific card by ID (for dev panel)
+		updateCard: (cardId, updates) => {
+			update(state => ({
+				...state,
+				cards: state.cards.map(card =>
+					card.id === cardId
+						? {
+							...card,
+							...updates,
+							surfacedAt: updates.formationState === 'surfaced' && !card.surfacedAt
+								? Date.now()
+								: card.surfacedAt
+						}
+						: card
+				),
+				updatedAt: Date.now()
+			}));
+		},
+
+		// Delete a specific card (for dev panel)
+		deleteCard: (cardId) => {
+			update(state => ({
+				...state,
+				cards: state.cards.filter(card => card.id !== cardId),
+				updatedAt: Date.now()
+			}));
+		},
+
+		// Clear all cards (for dev panel)
+		clearCards: () => {
+			update(state => ({
+				...state,
+				cards: [],
+				updatedAt: Date.now()
+			}));
+		},
+
+		// Clear all messages (for dev panel)
+		clearMessages: () => {
+			update(state => ({
+				...state,
+				messages: [],
+				updatedAt: Date.now()
+			}));
+		},
+
+		// Load preset data (for dev panel)
+		loadPreset: (preset) => {
+			update(state => ({
+				...state,
+				cards: preset.cards.map(c => ({
+					...c,
+					id: crypto.randomUUID(),
+					createdAt: Date.now(),
+					surfacedAt: c.formationState === 'surfaced' ? Date.now() : null
+				})),
+				messages: preset.messages.map(m => ({
+					...m,
+					id: crypto.randomUUID(),
+					timestamp: Date.now()
+				})),
+				phase: 'CONVERSATION',
+				pendingProposal: null,
+				updatedAt: Date.now()
+			}));
+		},
+
+		// Set a pending proposal directly (for dev panel)
+		setPendingProposal: (proposal) => {
+			update(state => ({
+				...state,
+				pendingProposal: proposal,
+				phase: proposal ? 'CARD_PROPOSAL' : state.phase
+			}));
 		},
 
 		// Reset session (start fresh)

@@ -1,12 +1,14 @@
 import Anthropic from '@anthropic-ai/sdk';
 import { json } from '@sveltejs/kit';
 import { ANTHROPIC_API_KEY } from '$env/static/private';
+import { SYSTEM_CONTEXTS, getSystemContext } from '$lib/data/contexts.js';
 
 const anthropic = new Anthropic({
 	apiKey: ANTHROPIC_API_KEY
 });
 
-const CONTEXT_PROMPTS = {
+// Legacy context prompts for backward compatibility
+const LEGACY_CONTEXT_PROMPTS = {
 	meeting: 'These elements are encountering each other for the first time. What happens when they meet? What do they recognize in each other?',
 	conflict: 'These elements are in tension with each other. What is the nature of their conflict? What does each want that the other resists?',
 	discovery: 'Something is being revealed between these elements. What hidden truth emerges when they are placed together? What was waiting to be seen?',
@@ -26,7 +28,19 @@ export async function POST({ request }) {
 			`Card ${i + 1}: "${card.name}" - ${card.essence}`
 		).join('\n');
 
-		const contextPrompt = CONTEXT_PROMPTS[context] || CONTEXT_PROMPTS.meeting;
+		// Handle both new format (context object) and legacy format (context string)
+		let contextPrompt;
+		if (typeof context === 'object' && context.prompt) {
+			// New format: full context object with prompt
+			contextPrompt = context.prompt;
+		} else if (typeof context === 'string') {
+			// Legacy format: context name string
+			const systemContext = getSystemContext(context);
+			contextPrompt = systemContext?.prompt || LEGACY_CONTEXT_PROMPTS[context] || LEGACY_CONTEXT_PROMPTS.meeting;
+		} else {
+			// Fallback
+			contextPrompt = SYSTEM_CONTEXTS[0].prompt;
+		}
 
 		const systemPrompt = `You are a narrator witnessing an interaction between symbolic elements from someone's inner landscape. Your role is to:
 

@@ -1,12 +1,17 @@
 <script>
 	import { session, surfacedCards } from '$lib/stores/session.js';
+	import ContextDeck from './ContextDeck.svelte';
+	import AssemblySave from './AssemblySave.svelte';
+	import { SYSTEM_CONTEXTS } from '$lib/data/contexts.js';
 
 	// Arrangement slots (3 slots for MVP)
 	let slots = $state([null, null, null]);
-	let context = $state('meeting');
+	let selectedContext = $state(SYSTEM_CONTEXTS[0]); // Default to first system context
 	let generatedNarrative = $state('');
 	let isGenerating = $state(false);
 	let error = $state(null);
+	let showSaveModal = $state(false);
+	let savedMessage = $state(null);
 
 	// Available cards (not in slots)
 	let availableCards = $derived(
@@ -29,8 +34,12 @@
 		generatedNarrative = '';
 	}
 
+	function handleContextSelect(context) {
+		selectedContext = context;
+	}
+
 	async function generateInteraction() {
-		if (filledCount < 2) return;
+		if (filledCount < 2 || !selectedContext) return;
 
 		isGenerating = true;
 		error = null;
@@ -42,7 +51,7 @@
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify({
 					cards: slots.filter(s => s !== null),
-					context
+					context: selectedContext // Pass full context object
 				})
 			});
 
@@ -63,12 +72,21 @@
 		session.setPhase('CONVERSATION');
 	}
 
-	const contexts = [
-		{ value: 'meeting', label: 'Meeting', description: 'These elements encounter each other' },
-		{ value: 'conflict', label: 'Conflict', description: 'These elements are in tension' },
-		{ value: 'discovery', label: 'Discovery', description: 'Something is revealed between them' },
-		{ value: 'transformation', label: 'Transformation', description: 'One element changes the others' }
-	];
+	function openSaveModal() {
+		showSaveModal = true;
+	}
+
+	function handleSaved(assembly) {
+		showSaveModal = false;
+		savedMessage = `Saved "${assembly.title}"`;
+		// Clear message after 3 seconds
+		setTimeout(() => {
+			savedMessage = null;
+		}, 3000);
+	}
+
+	// Get cards currently in slots
+	let placedCards = $derived(slots.filter(s => s !== null));
 </script>
 
 <div class="min-h-screen flex flex-col">
@@ -145,21 +163,12 @@
 			</div>
 
 			<!-- Context selector -->
-			<div class="flex justify-center mb-6">
-				<div class="flex gap-2 flex-wrap justify-center">
-					{#each contexts as ctx}
-						<button
-							onclick={() => context = ctx.value}
-							class="px-4 py-2 rounded-lg text-sm transition-all duration-200
-								{context === ctx.value
-									? 'bg-silver-400/20 text-silver-200 border border-silver-400/40'
-									: 'bg-depth-700 text-silver-400 border border-silver-400/10 hover:border-silver-400/30'}"
-							title={ctx.description}
-						>
-							{ctx.label}
-						</button>
-					{/each}
-				</div>
+			<div class="mb-6 max-w-2xl mx-auto w-full">
+				<h3 class="text-sm text-silver-400 uppercase tracking-wider mb-3 text-center">Choose a context</h3>
+				<ContextDeck
+					selected={selectedContext}
+					onSelect={handleContextSelect}
+				/>
 			</div>
 
 			<!-- Generate button -->
@@ -202,8 +211,38 @@
 							{generatedNarrative}
 						</p>
 					</div>
+
+					<!-- Save button -->
+					<div class="flex justify-center mt-4 gap-3">
+						<button
+							onclick={openSaveModal}
+							class="px-6 py-2 rounded-lg text-sm transition-all duration-200
+								bg-emerald-900/30 text-emerald-300 border border-emerald-400/30
+								hover:bg-emerald-900/50 hover:text-emerald-200"
+						>
+							Save this assembly
+						</button>
+					</div>
+
+					<!-- Saved message -->
+					{#if savedMessage}
+						<p class="text-center text-emerald-400 text-sm mt-3 animate-rise">
+							{savedMessage}
+						</p>
+					{/if}
 				</div>
 			{/if}
 		</div>
 	</div>
 </div>
+
+<!-- Save modal -->
+{#if showSaveModal}
+	<AssemblySave
+		cards={placedCards}
+		context={selectedContext}
+		narrative={generatedNarrative}
+		onSave={handleSaved}
+		onClose={() => showSaveModal = false}
+	/>
+{/if}

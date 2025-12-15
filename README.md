@@ -13,7 +13,15 @@ A web application for personal exploration through AI-assisted conversation. Car
    ```bash
    cp .env.example .env
    # Edit .env and add your Anthropic API key
+   # Optionally add Supabase credentials for cloud persistence
    ```
+
+   Required:
+   - `ANTHROPIC_API_KEY` - Your Anthropic API key
+
+   Optional (for cloud persistence):
+   - `VITE_SUPABASE_URL` - Your Supabase project URL
+   - `VITE_SUPABASE_ANON_KEY` - Your Supabase anon key
 
 3. **Run development server**
    ```bash

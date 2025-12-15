@@ -24,7 +24,7 @@
 <!-- Modal backdrop -->
 <div class="fixed inset-0 bg-depth-900/80 backdrop-blur-sm z-40 flex items-center justify-center p-4">
 	<!-- Modal content -->
-	<div class="bg-depth-700 border border-silver-400/20 rounded-2xl max-w-md w-full p-6 animate-rise">
+	<div class="bg-depth-700 border border-silver-400/20 rounded-2xl max-w-lg w-full p-6 animate-rise">
 		<!-- Header -->
 		<h2 class="font-serif text-xl text-silver-100 mb-2">Something wants to surface</h2>
 		<p class="text-silver-400 text-sm mb-6">
@@ -49,11 +49,11 @@
 				<!-- Editable essence -->
 				<textarea
 					bind:value={editedEssence}
-					rows="2"
+					rows="4"
 					class="w-full bg-transparent border border-silver-400/20 rounded-lg
-						text-silver-300 text-sm p-2
+						text-silver-300 text-sm p-3
 						focus:outline-none focus:border-silver-400/40
-						resize-none"
+						resize-y min-h-[100px] max-h-[200px]"
 					placeholder="What does this represent..."
 				></textarea>
 
