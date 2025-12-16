@@ -9,6 +9,7 @@ dist/
 # Environment files (keep .env.example, ignore actual .env)
 .env
 .env.local
+.env.production
 .env.*.local
 
 # IDE
@@ -27,3 +28,7 @@ npm-debug.log*
 
 # Vercel
 .vercel/
+
+# Supabase local
+supabase/.branches/
+supabase/.temp/
