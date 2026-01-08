@@ -152,6 +152,72 @@ For cloud persistence:
 
 The app works fully offline with localStorage - Supabase just adds cross-device sync.
 
+## Local Supabase Development
+
+Scripts are provided in `scripts/` for managing local and production Supabase instances.
+
+### Environment Switching
+
+```bash
+# Switch to local development
+./scripts/switch-env.sh local
+
+# Switch to production (with confirmation prompt)
+./scripts/switch-env.sh production
+
+# Check current environment
+./scripts/switch-env.sh status
+```
+
+### Local Development
+
+```bash
+# Start local Supabase
+./scripts/supabase-dev.sh start
+
+# Open Supabase Studio in browser
+./scripts/supabase-dev.sh studio
+
+# Stop local Supabase
+./scripts/supabase-dev.sh stop
+
+# Reset database (applies all migrations fresh)
+./scripts/supabase-dev.sh reset
+
+# Create a new migration
+./scripts/supabase-dev.sh migrate add_new_table
+
+# Check for schema drift
+./scripts/supabase-dev.sh diff
+```
+
+### Production Deployment
+
+```bash
+# First time: link to your production project
+./scripts/push-to-production.sh link
+
+# Compare local schema with production
+./scripts/push-to-production.sh diff
+
+# Push migrations to production
+./scripts/push-to-production.sh migrations
+
+# Pull schema changes from production
+./scripts/push-to-production.sh pull
+```
+
+### Port Configuration
+
+This project uses custom ports to avoid conflicts with other local Supabase projects:
+
+| Service   | Port  |
+|-----------|-------|
+| API       | 54331 |
+| Database  | 54332 |
+| Studio    | 54333 |
+| Inbucket  | 54334 |
+
 ## Deployment to Vercel
 
 1. Push to GitHub

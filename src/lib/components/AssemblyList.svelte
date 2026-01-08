@@ -91,9 +91,12 @@
 		{:else}
 			<div class="divide-y divide-silver-400/10">
 				{#each filteredAssemblies() as assembly (assembly.id)}
-					<button
+					<div
+						role="button"
+						tabindex="0"
 						onclick={() => onSelectAssembly(assembly)}
-						class="w-full p-4 text-left hover:bg-depth-700/50 transition-colors group"
+						onkeydown={(e) => e.key === 'Enter' && onSelectAssembly(assembly)}
+						class="w-full p-4 text-left hover:bg-depth-700/50 transition-colors group cursor-pointer"
 					>
 						<div class="flex items-start justify-between gap-3">
 							<div class="flex-1 min-w-0">
@@ -147,7 +150,7 @@
 								</svg>
 							</button>
 						</div>
-					</button>
+					</div>
 				{/each}
 			</div>
 		{/if}

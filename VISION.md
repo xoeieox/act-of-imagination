@@ -47,6 +47,7 @@ The visual metaphor is water - specifically, the Magic 8-Ball. Cards form like a
 ### Arrangement Play
 
 Once enough cards surface (3 or more), users enter arrangement mode:
+
 - Place cards in slots
 - Select a context lens (Crisis, Solitude, Community, Transition, Creation, Loss, Waiting, Conflict)
 - AI generates an evocative narrative of how these elements would interact
@@ -69,6 +70,7 @@ What if the "cards" weren't just personal archetypes, but **systemic elements**?
 The power emerges when we combine:
 
 **Systemic Cards** (social/economic concepts):
+
 - Community time banking
 - Universal basic income
 - Mutual aid networks
@@ -77,6 +79,7 @@ The power emerges when we combine:
 - Hierarchical governance
 
 **Personal Cards** (human elements):
+
 - Egotism
 - Agoraphobia
 - Fear of abandonment
@@ -127,6 +130,7 @@ Time frozen. Variables changed. Outcomes diverge.
 ### The Comparison View
 
 Side-by-side narrative comparison allows users to:
+
 - See exactly how changing one element ripples through the system
 - Identify which elements are load-bearing (change them and everything shifts)
 - Discover unexpected interactions between elements
@@ -166,6 +170,7 @@ Assemblies can travel through the Zephyrium ecosystem. Others encounter them, re
 Context cards are more universal than personal cards. While your card "The Locked Door" is deeply personal, the context "Transition" is universal. Everyone experiences transition.
 
 User-created contexts will be the **first travelers** in the Zephyrium ecosystem:
+
 - Created through guided AI conversation (like personal cards)
 - Represent recurring life situations or particular lenses
 - Can be shared, allowing others to view their cards through your context
@@ -195,6 +200,7 @@ These are pearls formed from internal irritations, as all good art is. Perfect s
 ### Return Journeys
 
 Cards that travel don't just disappear. They come back with stories:
+
 - Where they've been
 - What other cards they encountered
 - What arrangements they participated in
@@ -211,6 +217,7 @@ Your card is no longer just yours - it has a life, a history, a journey.
 Pre-made decks for economic/social exploration:
 
 **Community Economics Pack**
+
 - Time banking
 - Mutual aid
 - Gift economy
@@ -219,6 +226,7 @@ Pre-made decks for economic/social exploration:
 - Local currency
 
 **Human Difficulties Pack**
+
 - Egotism
 - Fear
 - Isolation
@@ -227,6 +235,7 @@ Pre-made decks for economic/social exploration:
 - Scarcity mindset
 
 **Political Structures Pack**
+
 - Democracy
 - Consensus
 - Hierarchy
@@ -235,6 +244,7 @@ Pre-made decks for economic/social exploration:
 - Delegation
 
 **Ecological Systems Pack**
+
 - Regeneration
 - Extraction
 - Symbiosis
@@ -245,6 +255,7 @@ Pre-made decks for economic/social exploration:
 ### Cross-User Assembly Viewing
 
 See how others have assembled similar cards:
+
 - "12 other users have arranged 'time banking' and 'egotism'"
 - Not statistics, but stories: "Here's what emerged..."
 - Inspiration for your own explorations
@@ -252,6 +263,7 @@ See how others have assembled similar cards:
 ### Assembly Evolution
 
 Track how a vision changes as cards are swapped:
+
 - Timeline of iterations
 - Branching paths when multiple users fork
 - Visualization of how small changes ripple through narratives
@@ -259,6 +271,7 @@ Track how a vision changes as cards are swapped:
 ### Open Play Mode
 
 Beyond structured arrangement - freeform narrative co-creation:
+
 - User and AI co-create a scene or narrative using distilled elements
 - More improvisational, less structured
 - For when you want to explore rather than experiment
@@ -266,6 +279,7 @@ Beyond structured arrangement - freeform narrative co-creation:
 ### Shadow Cave
 
 A dedicated space for working with avoided material:
+
 - Cards representing things conspicuously not discussed
 - The shape of the hole
 - User chooses to enter, knowing what awaits
@@ -318,6 +332,7 @@ This isn't extractive - it's generative. Your cards remain yours. But they can a
 ## Technical Implementation
 
 ### Current Stack
+
 - **SvelteKit 5** with Svelte 5 runes
 - **Tailwind CSS** with moonlight-on-water palette
 - **Claude API** with tool use for card detection
@@ -327,6 +342,7 @@ This isn't extractive - it's generative. Your cards remain yours. But they can a
 ### AI System Design
 
 The conversation API uses Claude's tool use feature with three tools:
+
 - `detect_forming_card` - When AI notices a theme/tension/figure forming
 - `deepen_card` - When something previously detected gains more substance
 - `propose_card_naming` - When a card is ready to be named
@@ -334,6 +350,7 @@ The conversation API uses Claude's tool use feature with three tools:
 This allows natural card formation without rigid prompting.
 
 ### Local-First Architecture
+
 - Sessions automatically save to localStorage
 - Optional Supabase integration for cloud sync
 - Migration prompt when first signing in with existing local data
