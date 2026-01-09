@@ -67,18 +67,24 @@
 	}
 </script>
 
-<div class="min-h-full flex items-center justify-center p-6">
-	<div class="w-full max-w-sm">
-		<!-- Back link -->
-		<a
-			href="/"
-			class="inline-flex items-center gap-2 text-silver-400 hover:text-silver-300 text-sm mb-8 transition-colors"
-		>
-			<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
-				<path fill-rule="evenodd" d="M9.707 16.707a1 1 0 01-1.414 0l-6-6a1 1 0 010-1.414l6-6a1 1 0 011.414 1.414L5.414 9H17a1 1 0 110 2H5.414l4.293 4.293a1 1 0 010 1.414z" clip-rule="evenodd" />
-			</svg>
-			Back to exploration
-		</a>
+<!-- Three column layout like the rest of the app -->
+<div class="h-full w-full flex max-w-7xl mx-auto">
+	<!-- Left column (empty, for visual balance) -->
+	<aside class="w-64 border-r border-silver-400/10 flex-shrink-0 hidden lg:block"></aside>
+
+	<!-- Center column: auth content -->
+	<div class="flex-1 flex items-center justify-center p-6">
+		<div class="w-full max-w-sm">
+			<!-- Back link -->
+			<a
+				href="/"
+				class="inline-flex items-center gap-2 text-silver-400 hover:text-silver-300 text-sm mb-8 transition-colors"
+			>
+				<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+					<path fill-rule="evenodd" d="M9.707 16.707a1 1 0 01-1.414 0l-6-6a1 1 0 010-1.414l6-6a1 1 0 011.414 1.414L5.414 9H17a1 1 0 110 2H5.414l4.293 4.293a1 1 0 010 1.414z" clip-rule="evenodd" />
+				</svg>
+				Back to exploration
+			</a>
 
 		{#if !isSupabaseConfigured()}
 			<!-- Supabase not configured -->
@@ -197,5 +203,9 @@
 				</div>
 			{/if}
 		{/if}
+		</div>
 	</div>
+
+	<!-- Right column (empty, for visual balance) -->
+	<aside class="w-64 border-l border-silver-400/10 flex-shrink-0 hidden lg:block"></aside>
 </div>

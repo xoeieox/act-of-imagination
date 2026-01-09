@@ -1,13 +1,18 @@
 <script>
-	import { assembliesStore } from '$lib/supabase/assemblies.js';
+	import { assembliesStore, assemblies } from '$lib/supabase/assemblies.js';
 
 	// Props
 	let {
-		assembly = null,
+		assembly: assemblyProp = null,
 		onSelectIteration = () => {},
 		onCompare = () => {},
 		onClose = () => {}
 	} = $props();
+
+	// Get reactive assembly from store to ensure star updates show immediately
+	let assembly = $derived(
+		$assemblies.find(a => a.id === assemblyProp?.id) || assemblyProp
+	);
 
 	let selectedIterations = $state(new Set());
 	let isCompareMode = $state(false);

@@ -6,6 +6,12 @@
 	import { assemblies, initAssemblies } from '$lib/supabase/assemblies.js';
 	import { onMount } from 'svelte';
 
+	// Props for loading an existing assembly
+	let {
+		initialAssembly = null,
+		onLoaded = () => {}
+	} = $props();
+
 	// Arrangement slots (3 slots for MVP)
 	let slots = $state([null, null, null]);
 	let selectedContext = $state(SYSTEM_CONTEXTS[0]); // Default to first system context
@@ -24,6 +30,52 @@
 		await initAssemblies();
 		timelineLoaded = true;
 	});
+
+	// Watch for initialAssembly prop changes (handles both initial load and loading while already in arrangement)
+	$effect(() => {
+		if (initialAssembly) {
+			loadAssembly(initialAssembly);
+			onLoaded();
+		}
+	});
+
+	// Load an assembly's cards and context into the arrangement
+	function loadAssembly(assembly) {
+		// Get the cards from the assembly - match with surfaced cards by name
+		// (IDs may differ between saved snapshot and current session)
+		const assemblyCardNames = new Set(assembly.cards?.map(c => c.name?.toLowerCase()) || []);
+		const matchedCards = [];
+
+		// Match in order of assembly cards to preserve arrangement
+		for (const assemblyCard of (assembly.cards || [])) {
+			const match = $surfacedCards.find(c =>
+				c.name?.toLowerCase() === assemblyCard.name?.toLowerCase()
+			);
+			if (match && !matchedCards.includes(match)) {
+				matchedCards.push(match);
+			}
+		}
+
+		// Fill slots with matched cards (up to 3)
+		slots = [
+			matchedCards[0] || null,
+			matchedCards[1] || null,
+			matchedCards[2] || null
+		];
+
+		// Load the context if available from latest iteration
+		const latestIteration = assembly.iterations?.[assembly.iterations.length - 1];
+		if (latestIteration?.contextSnapshot) {
+			// Find matching system context or use the snapshot
+			const matchedContext = SYSTEM_CONTEXTS.find(c => c.id === latestIteration.contextSnapshot.id);
+			selectedContext = matchedContext || latestIteration.contextSnapshot;
+		}
+
+		// Load the narrative if available
+		if (latestIteration?.narrative) {
+			generatedNarrative = latestIteration.narrative;
+		}
+	}
 
 	// Available cards (not in slots)
 	let availableCards = $derived(
@@ -92,6 +144,7 @@
 
 	// Drag and drop state
 	let draggedCard = $state(null);
+	let dragSourceSlot = $state(null); // Track which slot the card is being dragged from
 	let dragOverSlot = $state(null);
 
 	function placeCard(card, slotIndex) {
@@ -102,15 +155,17 @@
 		slots[slotIndex] = null;
 	}
 
-	// Drag and drop handlers
-	function handleDragStart(e, card) {
+	// Drag and drop handlers - for cards in the sidebar
+	function handleDragStart(e, card, fromSlot = null) {
 		draggedCard = card;
+		dragSourceSlot = fromSlot;
 		e.dataTransfer.effectAllowed = 'move';
 		e.dataTransfer.setData('text/plain', card.id);
 	}
 
 	function handleDragEnd() {
 		draggedCard = null;
+		dragSourceSlot = null;
 		dragOverSlot = null;
 	}
 
@@ -126,10 +181,33 @@
 
 	function handleDrop(e, slotIndex) {
 		e.preventDefault();
-		if (draggedCard && slots[slotIndex] === null) {
-			placeCard(draggedCard, slotIndex);
+		if (!draggedCard) return;
+
+		const targetCard = slots[slotIndex];
+
+		if (dragSourceSlot !== null) {
+			// Dragging from another slot - swap cards
+			if (targetCard) {
+				// Swap: put target card in source slot
+				slots[dragSourceSlot] = targetCard;
+			} else {
+				// Move to empty slot: clear source slot
+				slots[dragSourceSlot] = null;
+			}
+			slots[slotIndex] = draggedCard;
+		} else {
+			// Dragging from sidebar
+			if (targetCard) {
+				// Replace card in slot (old card goes back to available)
+				slots[slotIndex] = draggedCard;
+			} else {
+				// Place in empty slot
+				slots[slotIndex] = draggedCard;
+			}
 		}
+
 		draggedCard = null;
+		dragSourceSlot = null;
 		dragOverSlot = null;
 	}
 
@@ -227,21 +305,7 @@
 			</svg>
 		</button>
 		<h2 class="font-serif text-silver-200 flex-1 text-center">Arrangement Play</h2>
-		<div class="w-64 flex-shrink-0 hidden lg:flex justify-end">
-			<button
-				onclick={clearSlots}
-				class="text-silver-400 hover:text-silver-300 transition-colors text-sm"
-			>
-				Clear
-			</button>
-		</div>
-		<!-- Mobile clear button -->
-		<button
-			onclick={clearSlots}
-			class="text-silver-400 hover:text-silver-300 transition-colors text-sm lg:hidden"
-		>
-			Clear
-		</button>
+		<div class="w-64 flex-shrink-0 hidden lg:block"></div>
 	</div>
 
 	<!-- Three column layout -->
@@ -371,24 +435,34 @@
 			<div class="flex-1 overflow-y-auto p-6">
 				<div class="max-w-2xl mx-auto w-full pb-8">
 				<!-- Slots -->
-				<div class="flex justify-center gap-3 sm:gap-4 mb-6 flex-wrap">
+				<div class="flex justify-center gap-3 sm:gap-4 mb-4 flex-wrap">
 					{#each slots as slot, i}
 						<div
-							class="w-28 h-36 sm:w-36 sm:h-44 rounded-xl border-2 border-dashed
-								{slot ? 'border-silver-400/40 bg-depth-700' : dragOverSlot === i ? 'border-silver-300 bg-depth-700/50 scale-105' : 'border-silver-400/20 bg-depth-800/50'}
+							class="w-28 h-36 sm:w-36 sm:h-44 rounded-xl border-2
+								{slot ? 'border-solid border-silver-400/40 bg-depth-700' : 'border-dashed'}
+								{!slot && dragOverSlot === i ? 'border-silver-300 bg-depth-700/50 scale-105' : !slot ? 'border-silver-400/20 bg-depth-800/50' : ''}
+								{slot && dragOverSlot === i && dragSourceSlot !== i ? 'ring-2 ring-silver-300 scale-105' : ''}
+								{draggedCard?.id === slot?.id ? 'opacity-50 scale-95' : ''}
 								flex flex-col items-center justify-center transition-all duration-200"
-							ondragover={(e) => !slot && handleDragOver(e, i)}
+							ondragover={(e) => handleDragOver(e, i)}
 							ondragleave={handleDragLeave}
 							ondrop={(e) => handleDrop(e, i)}
 							role="region"
 							aria-label="Card slot {i + 1}"
 						>
 							{#if slot}
-								<div class="p-2 sm:p-3 text-center">
+								<div
+									class="p-2 sm:p-3 text-center w-full h-full flex flex-col justify-center cursor-grab active:cursor-grabbing"
+									draggable="true"
+									ondragstart={(e) => handleDragStart(e, slot, i)}
+									ondragend={handleDragEnd}
+									role="button"
+									tabindex="0"
+								>
 									<h4 class="font-serif text-silver-200 text-xs sm:text-sm mb-1 sm:mb-2">{slot.name}</h4>
 									<p class="text-silver-400 text-[10px] sm:text-xs mb-2 sm:mb-3 line-clamp-3">{slot.essence}</p>
 									<button
-										onclick={() => removeCard(i)}
+										onclick={(e) => { e.stopPropagation(); removeCard(i); }}
 										class="text-silver-400/50 hover:text-silver-300 text-[10px] sm:text-xs"
 									>
 										Remove
@@ -402,6 +476,21 @@
 						</div>
 					{/each}
 				</div>
+
+				<!-- Clear slots button -->
+				{#if filledCount > 0}
+					<div class="flex justify-center mb-6">
+						<button
+							onclick={clearSlots}
+							class="text-silver-400/60 hover:text-silver-300 transition-colors text-sm flex items-center gap-1.5"
+						>
+							<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+								<path fill-rule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z" clip-rule="evenodd" />
+							</svg>
+							Clear arrangement
+						</button>
+					</div>
+				{/if}
 
 				<!-- Context selector -->
 				<div class="mb-6">

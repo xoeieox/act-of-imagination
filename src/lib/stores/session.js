@@ -26,6 +26,11 @@ function createDefaultSession() {
 	};
 }
 
+// Save tracking variables (declared early so loadSession can initialize them)
+let saveTimeout = null;
+let lastSavedMessageCount = 0;
+let lastSavedCardCount = 0;
+
 // Load session from localStorage
 function loadSession() {
 	if (!browser) return createDefaultSession();
@@ -34,6 +39,11 @@ function loadSession() {
 		const stored = localStorage.getItem(STORAGE_KEY);
 		if (stored) {
 			const parsed = JSON.parse(stored);
+
+			// Initialize save tracking to current counts (so we don't re-save on first render)
+			lastSavedMessageCount = parsed.messages?.length || 0;
+			lastSavedCardCount = parsed.cards?.length || 0;
+
 			// Reset transient state
 			return {
 				...parsed,
@@ -53,16 +63,20 @@ function loadSession() {
 	return createDefaultSession();
 }
 
-// Save session to localStorage (debounced)
-let saveTimeout = null;
-function saveSession(state) {
+// Save session to localStorage (debounced for general updates, immediate for critical data)
+
+function saveSession(state, forceImmediate = false) {
 	if (!browser) return;
+
+	// Check if we have new messages or cards - these need immediate save
+	const hasNewMessages = state.messages.length > lastSavedMessageCount;
+	const hasNewCards = state.cards.length > lastSavedCardCount;
+	const needsImmediateSave = forceImmediate || hasNewMessages || hasNewCards;
 
 	// Clear pending save
 	if (saveTimeout) clearTimeout(saveTimeout);
 
-	// Debounce saves to avoid excessive writes
-	saveTimeout = setTimeout(() => {
+	const doSave = () => {
 		try {
 			// Don't persist transient state
 			const toSave = {
@@ -77,10 +91,28 @@ function saveSession(state) {
 
 			// Also save cards separately for the cards service
 			localStorage.setItem(CARDS_STORAGE_KEY, JSON.stringify(state.cards));
+
+			// Update our tracking
+			lastSavedMessageCount = state.messages.length;
+			lastSavedCardCount = state.cards.length;
 		} catch (e) {
-			console.warn('Failed to save session to localStorage:', e);
+			// Handle quota exceeded or other storage errors
+			if (e.name === 'QuotaExceededError') {
+				console.error('localStorage quota exceeded. Some data may not be saved.');
+				// Could emit an event here to notify the user
+			} else {
+				console.warn('Failed to save session to localStorage:', e);
+			}
 		}
-	}, 500);
+	};
+
+	if (needsImmediateSave) {
+		// Critical data - save immediately
+		doSave();
+	} else {
+		// Non-critical updates - debounce
+		saveTimeout = setTimeout(doSave, 500);
+	}
 }
 
 // Sync to Supabase (debounced, for authenticated users)

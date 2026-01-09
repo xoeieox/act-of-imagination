@@ -40,10 +40,16 @@
 	}
 
 	function handleSelectIteration(iteration) {
-		// Load the iteration's cards into arrangement play
-		// For now, just go to arrangement mode
+		// Build a pseudo-assembly from the iteration's card snapshot
+		// This allows ArrangementPlay to load the cards by name matching
+		const pseudoAssembly = {
+			cards: iteration.cardSnapshot || [],
+			iterations: [iteration]
+		};
+
 		showTimeline = false;
 		selectedAssembly = null;
+		loadedAssembly = pseudoAssembly;
 		session.enterArrangementPlay();
 	}
 
@@ -65,6 +71,21 @@
 		session.enterArrangementPlay();
 	}
 
+	function handleLoadAssembly(assembly) {
+		// Close the modal
+		navigation.clearView();
+
+		// The assembly's cards need to be loaded - we'll emit an event
+		// that ArrangementPlay can listen to, or we store the loaded assembly
+		// For now, we'll just enter arrangement mode - the actual loading
+		// would require ArrangementPlay to accept initial slots
+		loadedAssembly = assembly;
+		session.enterArrangementPlay();
+	}
+
+	// Track loaded assembly for ArrangementPlay
+	let loadedAssembly = $state(null);
+
 	function closeAllPanels() {
 		navigation.clearView();
 		showTimeline = false;
@@ -79,13 +100,19 @@
 		}
 	});
 
-	async function handleSend(content) {
+	// Track the last failed request for retry capability
+	let lastFailedRequest = $state(null);
+
+	async function handleSend(content, isRetry = false) {
 		if (!content.trim() || $session.isLoading) return;
 
-		// Add user message
-		session.addUserMessage(content);
+		// Add user message (skip if this is a retry - message already exists)
+		if (!isRetry) {
+			session.addUserMessage(content);
+		}
 		session.setLoading(true);
 		session.setError(null);
+		lastFailedRequest = null;
 
 		try {
 			const response = await fetch('/api/chat', {
@@ -98,27 +125,56 @@
 			});
 
 			if (!response.ok) {
-				throw new Error('Failed to get response');
+				const errorData = await response.json().catch(() => ({}));
+				throw new Error(errorData.details || 'Unable to connect. Please try again.');
 			}
 
 			const data = await response.json();
-			session.addAssistantMessage(data.content);
+
+			// Only add assistant message if there's actual content
+			if (data.content && data.content.trim()) {
+				session.addAssistantMessage(data.content);
+			}
 
 			// Handle any card formation events from the API
 			if (data.cardEvents && data.cardEvents.length > 0) {
 				session.processCardEvents(data.cardEvents);
 			}
 		} catch (error) {
-			session.setError(error.message);
+			// Store failed request for retry
+			lastFailedRequest = { content };
+
+			// User-friendly error messages
+			let friendlyMessage = 'Something went wrong. Your message has been saved.';
+			if (error.message.includes('fetch')) {
+				friendlyMessage = 'Connection lost. Your message is safe - tap retry when ready.';
+			} else if (error.message.includes('API') || error.message.includes('key')) {
+				friendlyMessage = 'Service temporarily unavailable. Your message is saved.';
+			}
+			session.setError(friendlyMessage);
 		} finally {
 			session.setLoading(false);
 		}
+	}
+
+	function handleRetry() {
+		if (lastFailedRequest) {
+			handleSend(lastFailedRequest.content, true);
+		}
+	}
+
+	function dismissError() {
+		session.setError(null);
+		lastFailedRequest = null;
 	}
 </script>
 
 <!-- Arrangement Play Mode -->
 {#if $session.phase === 'ARRANGEMENT_PLAY'}
-	<ArrangementPlay />
+	<ArrangementPlay
+		initialAssembly={loadedAssembly}
+		onLoaded={() => loadedAssembly = null}
+	/>
 
 <!-- Card Proposal Modal -->
 {:else if $session.phase === 'CARD_PROPOSAL' && $session.pendingProposal}
@@ -140,7 +196,7 @@
 				{/each}
 			</div>
 		</div>
-		<aside class="w-64 p-4 border-l border-silver-400/10 hidden lg:block">
+		<aside class="w-80 pl-4 pr-5 py-4 border-l border-silver-400/10 hidden lg:block">
 			<div class="space-y-3">
 				{#each $surfacedCards as card (card.id)}
 					<Card {card} />
@@ -168,7 +224,7 @@
 				{/each}
 			</div>
 		</div>
-		<aside class="w-64 p-4 border-l border-silver-400/10 hidden lg:block">
+		<aside class="w-80 pl-4 pr-5 py-4 border-l border-silver-400/10 hidden lg:block">
 			<div class="space-y-3">
 				{#each $surfacedCards as card (card.id)}
 					<Card {card} />
@@ -241,10 +297,34 @@
 				{/if}
 			</div>
 
-			<!-- Error display -->
+			<!-- Error display with retry -->
 			{#if $session.error}
-				<div class="px-6 py-2">
-					<p class="text-red-400 text-sm text-center">{$session.error}</p>
+				<div class="px-6 py-3 bg-depth-700/50 border-t border-red-400/20">
+					<div class="max-w-2xl mx-auto flex items-center justify-between gap-4">
+						<p class="text-red-300 text-sm flex-1">{$session.error}</p>
+						<div class="flex gap-2 flex-shrink-0">
+							{#if lastFailedRequest}
+								<button
+									onclick={handleRetry}
+									class="px-3 py-1.5 text-sm rounded-lg
+										bg-silver-400/10 text-silver-300 border border-silver-400/20
+										hover:bg-silver-400/20 hover:text-silver-200
+										transition-all duration-200"
+								>
+									Retry
+								</button>
+							{/if}
+							<button
+								onclick={dismissError}
+								class="px-3 py-1.5 text-sm rounded-lg
+									text-silver-400 hover:text-silver-300
+									transition-colors"
+								aria-label="Dismiss error"
+							>
+								Dismiss
+							</button>
+						</div>
+					</div>
 				</div>
 			{/if}
 
@@ -255,7 +335,7 @@
 		</div>
 
 		<!-- Right Cards Panel -->
-		<aside class="w-64 p-4 border-l border-silver-400/10 hidden lg:block overflow-y-auto flex-shrink-0">
+		<aside class="w-80 pl-4 pr-5 py-4 border-l border-silver-400/10 hidden lg:block overflow-y-auto flex-shrink-0" style="scrollbar-gutter: stable;">
 			<h2 class="text-sm text-silver-400 uppercase tracking-wider mb-4">Surfaced</h2>
 			<div class="space-y-3">
 				{#each $surfacedCards as card (card.id)}
@@ -303,7 +383,9 @@
 			</div>
 			<div class="flex-1 overflow-y-auto p-4">
 				<AssemblyList
-					onSelect={handleSelectAssembly}
+					onSelectAssembly={handleSelectAssembly}
+					onLoadAssembly={handleLoadAssembly}
+					onClose={closeAllPanels}
 				/>
 			</div>
 		</div>

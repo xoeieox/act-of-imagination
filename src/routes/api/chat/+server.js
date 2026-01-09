@@ -118,11 +118,13 @@ export async function POST({ request }) {
 	try {
 		const { messages, cards } = await request.json();
 
-		// Format messages for Claude API
-		const formattedMessages = messages.map(m => ({
-			role: m.role,
-			content: m.content
-		}));
+		// Format messages for Claude API, filtering out empty content
+		const formattedMessages = messages
+			.filter(m => m.content && m.content.trim() !== '')
+			.map(m => ({
+				role: m.role,
+				content: m.content
+			}));
 
 		// Build context about existing cards
 		let systemAddition = '';
@@ -193,16 +195,25 @@ export async function POST({ request }) {
 		}
 
 		// If the model used tools but didn't provide text, we need to continue the conversation
-		// to get the actual response text
-		if (!textContent && cardEvents.length > 0) {
+		// to get the actual response text. Keep trying until we get text (max 3 attempts).
+		let attempts = 0;
+		const maxAttempts = 3;
+		let currentResponse = response;
+
+		while (!textContent && cardEvents.length > 0 && attempts < maxAttempts) {
+			attempts++;
+
 			// Build tool results to send back
-			const toolResults = response.content
+			const toolResults = currentResponse.content
 				.filter(b => b.type === 'tool_use')
 				.map(b => ({
 					type: 'tool_result',
 					tool_use_id: b.id,
-					content: 'Card formation noted. Continue your response to the user.'
+					content: 'Card formation noted. Please provide a conversational response to the user.'
 				}));
+
+			// If no tool uses to respond to, break
+			if (toolResults.length === 0) break;
 
 			const continuedResponse = await anthropic.messages.create({
 				model: 'claude-sonnet-4-20250514',
@@ -211,7 +222,7 @@ export async function POST({ request }) {
 				tools: TOOLS,
 				messages: [
 					...formattedMessages,
-					{ role: 'assistant', content: response.content },
+					{ role: 'assistant', content: currentResponse.content },
 					{ role: 'user', content: toolResults }
 				]
 			});
@@ -223,6 +234,14 @@ export async function POST({ request }) {
 					break;
 				}
 			}
+
+			// Update for next iteration if needed
+			currentResponse = continuedResponse;
+		}
+
+		// Final fallback: if we still have no text but had card events, provide a minimal acknowledgment
+		if (!textContent && cardEvents.length > 0) {
+			textContent = "I'm here with you. Something is stirring beneath the surface...";
 		}
 
 		return json({
