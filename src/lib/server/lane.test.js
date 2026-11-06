@@ -52,7 +52,7 @@ describe('resolveLane - env table', () => {
 	});
 
 	it('unknown provider fails closed', () => {
-		const env = { ...BASE, AOI_LLM_CHAT_PROVIDER: 'anthropic' };
+		const env = { ...BASE, AOI_LLM_CHAT_PROVIDER: 'made-up-provider' };
 		expect(resolveLane('chat', { env })).toBeNull();
 	});
 

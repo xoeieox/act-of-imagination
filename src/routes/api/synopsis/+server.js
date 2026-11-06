@@ -1,5 +1,5 @@
 import { json } from '@sveltejs/kit';
-import { chat as laneChat, LaneUnconfiguredError, laneConfigHint } from '$lib/server/lane.js';
+import { chat as laneChat, laneErrorShape } from '$lib/server/lane.js';
 
 export async function POST({ request }) {
 	try {
@@ -47,11 +47,11 @@ Write a 1-2 sentence synopsis that captures what this assembly explores.`;
 		return json({ synopsis });
 
 	} catch (error) {
-		if (error instanceof LaneUnconfiguredError) {
-			return json(
-				{ error: 'llm_lane_unconfigured', lane: error.lane, hint: laneConfigHint(error.lane) },
-				{ status: 501 }
-			);
+		// Shared lane shape with the other two routes: 501 unconfigured (I-2) / 502 upstream.
+		const laneShape = laneErrorShape(error);
+		if (laneShape) {
+			console.error('Synopsis API lane error:', error);
+			return json(laneShape.body, { status: laneShape.status });
 		}
 		console.error('Synopsis API error:', error);
 		return json(

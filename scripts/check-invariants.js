@@ -4,16 +4,26 @@
  *
  * Checks (all on TRACKED files, via `git ls-files`):
  *
- *  I-1 + F-2  No cloud pins in tracked app source (src/**, excluding tests):
- *             the pinned model id, the pinned API host, and the pinned API-key
- *             var of the pre-lane-swap Anthropic integration (see FORBIDDEN_PINS
- *             below).
+ *  I-1 + F-2  No cloud pins anywhere in tracked app source (src/**, test
+ *             files included): the pinned model id, the pinned API host, and
+ *             the pinned API-key var of the pre-lane-swap Anthropic
+ *             integration (see FORBIDDEN_PINS below).
  *             Literal http(s) hosts in src/**\/*.js (the logic files where
  *             endpoints live) must be loopback only: localhost / 127.0.0.1 / ::1
- *             - exact literals, no pattern escape (F-2). Markup files carry SVG
- *             xmlns constants (W3C namespace URIs, not endpoints); the host
- *             scan therefore scopes to .js, while the named pins above scan all
- *             tracked app source.
+ *             - exact literals, no pattern escape (F-2).
+ *             Recorded deliberate deviations from the spec sec 4 / I-1 grep
+ *             carve-outs (aoi-repo-polish-v0), accepted by the PR #3 reviewer
+ *             2026-11-06 cycle 1:
+ *             - D1 (stricter than spec): spec excludes tests from the grep;
+ *               the named-pin scan here does NOT, so a future test file
+ *               cannot hardcode a real pin. The literal-host scan keeps the
+ *               spec's test exclusion - lane tests legitimately use RFC 2606
+ *               .invalid placeholder hosts.
+ *             - D2 (host-scan scope only): spec's exclusion list has no
+ *               markup carve-out; the host scan nevertheless excludes
+ *               .svelte/.html because markup carries SVG xmlns constants
+ *               (W3C namespace URIs, not endpoints). The named-pin scan
+ *               still covers all tracked app source including markup.
  *  F-1        No SDK importers of the retired provider package remain anywhere
  *             in tracked source (the dependency deletion merges only with this
  *             green).
@@ -48,7 +58,12 @@ const files = trackedFiles();
 const read = (rel) => readFileSync(path.join(ROOT, rel), 'utf8');
 
 const isTest = (f) => f.endsWith('.test.js') || f.includes('__tests__/');
-const appSource = (f) => f.startsWith('src/') && /\.(js|svelte|html)$/.test(f) && !isTest(f);
+// Everything tracked under src/ that is code or markup. The named-pin scan
+// covers this set INCLUDING test files (deliberate deviation D1 - stricter
+// than the spec's grep carve-out); the literal-host scan and the I-6a leak
+// scan scope to appSource, which excludes tests.
+const trackedSrc = (f) => f.startsWith('src/') && /\.(js|svelte|html)$/.test(f);
+const appSource = (f) => trackedSrc(f) && !isTest(f);
 
 // ---- I-1 (named pins) + F-2 (loopback-only hosts in JS) ----
 // Patterns are concatenated so this gate file never self-matches a repo-wide grep.
@@ -57,19 +72,22 @@ const LOOPBACK_HOSTS = new Set(['localhost', '127.0.0.1', '::1', '[::1]']);
 const HOST_RE = /https?:\/\/([^\s"'`/)?#]+)/gi;
 
 const pinHits = [];
-for (const f of files.filter(appSource)) {
+for (const f of files.filter(trackedSrc)) {
 	const text = read(f);
 	for (const pin of FORBIDDEN_PINS) {
 		if (text.includes(pin)) pinHits.push(`${f}: contains "${pin}"`);
 	}
 }
 report(
-	'I-1 no cloud pins in tracked app source',
+	'I-1 no cloud pins in tracked app source (test files included, D1)',
 	pinHits.length === 0,
-	pinHits.join('; ') || `scanned ${files.filter(appSource).length} files`
+	pinHits.join('; ') || `scanned ${files.filter(trackedSrc).length} files`
 );
 
 const hostHits = [];
+// D2: scope is .js under src/, tests excluded (spec carve-out - tests use
+// .invalid placeholder hosts). .svelte/.html stay out of the host scan
+// because markup carries W3C xmlns URIs (namespace constants, not endpoints).
 const jsSources = files.filter((f) => f.startsWith('src/') && f.endsWith('.js') && !isTest(f));
 for (const f of jsSources) {
 	const text = read(f);

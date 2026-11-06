@@ -57,6 +57,34 @@ export function laneConfigHint(laneName) {
 	);
 }
 
+/**
+ * Machine-readable HTTP shape for lane errors, shared by the three API
+ * routes so a LaneUnconfiguredError (501, invariant I-2) and a
+ * LaneUpstreamError (502) look identical wherever they surface - including
+ * when a lane call fails mid-continuation in the chat route's loop.
+ * Returns null for anything that is not a lane error (caller keeps its
+ * generic 500 path).
+ */
+export function laneErrorShape(error) {
+	if (error instanceof LaneUnconfiguredError) {
+		return {
+			status: 501,
+			body: { error: 'llm_lane_unconfigured', lane: error.lane, hint: laneConfigHint(error.lane) }
+		};
+	}
+	if (error instanceof LaneUpstreamError) {
+		return {
+			status: 502,
+			body: {
+				error: 'llm_lane_upstream',
+				upstream_status: error.status,
+				details: error.detail || error.message
+			}
+		};
+	}
+	return null;
+}
+
 function trimToValue(raw) {
 	if (raw === undefined || raw === null) return '';
 	const s = String(raw).trim();

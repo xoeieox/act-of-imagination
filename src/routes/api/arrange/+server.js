@@ -1,5 +1,5 @@
 import { json } from '@sveltejs/kit';
-import { chat as laneChat, LaneUnconfiguredError, LaneUpstreamError, laneConfigHint } from '$lib/server/lane.js';
+import { chat as laneChat, LaneUpstreamError, laneErrorShape } from '$lib/server/lane.js';
 import { SYSTEM_CONTEXTS, getSystemContext } from '$lib/data/contexts.js';
 
 // Legacy context prompts for backward compatibility
@@ -74,11 +74,13 @@ Generate a scene or interaction that emerges from these elements meeting.`;
 		return json({ narrative });
 
 	} catch (error) {
-		if (error instanceof LaneUnconfiguredError) {
-			return json(
-				{ error: 'llm_lane_unconfigured', lane: error.lane, hint: laneConfigHint(error.lane) },
-				{ status: 501 }
-			);
+		// Shared lane shape with the other two routes: 501 unconfigured (I-2)
+		// vs 502 upstream (the thrown "no narrative content" LaneUpstreamError
+		// surfaces here too, at a gateway-accurate status).
+		const laneShape = laneErrorShape(error);
+		if (laneShape) {
+			console.error('Arrange API lane error:', error);
+			return json(laneShape.body, { status: laneShape.status });
 		}
 		console.error('Arrange API error:', error);
 		return json(

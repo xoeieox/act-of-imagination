@@ -1,5 +1,5 @@
 import { json } from '@sveltejs/kit';
-import { chat as laneChat, LaneUnconfiguredError, laneConfigHint } from '$lib/server/lane.js';
+import { chat as laneChat, laneErrorShape } from '$lib/server/lane.js';
 
 // Tool definitions for card formation
 const TOOLS = [
@@ -242,11 +242,12 @@ export async function POST({ request }) {
 		});
 
 	} catch (error) {
-		if (error instanceof LaneUnconfiguredError) {
-			return json(
-				{ error: 'llm_lane_unconfigured', lane: error.lane, hint: laneConfigHint(error.lane) },
-				{ status: 501 }
-			);
+		// Lane failures (including mid-continuation attempts 2..3) get the
+		// shared machine-readable shape - 501 unconfigured (I-2) / 502 upstream.
+		const laneShape = laneErrorShape(error);
+		if (laneShape) {
+			console.error('Chat API lane error:', error);
+			return json(laneShape.body, { status: laneShape.status });
 		}
 		console.error('Chat API error:', error);
 		return json(

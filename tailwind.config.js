@@ -23,8 +23,10 @@ export default {
 				}
 			},
 			fontFamily: {
-				sans: ['Inter', 'system-ui', 'sans-serif'],
-				serif: ['Crimson Pro', 'Georgia', 'serif'],
+				// OD-4 system font stack: the webfont names (and their Google Fonts
+				// links) are gone with the air-gap; local families only.
+				sans: ['system-ui', 'sans-serif'],
+				serif: ['Georgia', 'serif'],
 			},
 			animation: {
 				'float': 'float 6s ease-in-out infinite',
