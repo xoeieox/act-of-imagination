@@ -11,12 +11,17 @@
 </script>
 
 <!-- Subtle overlay -->
-<div class="fixed inset-0 bg-depth-900/60 backdrop-blur-sm z-40 flex items-center justify-center p-4">
-	<div class="bg-depth-700 border border-silver-400/20 rounded-2xl max-w-lg w-full p-6 animate-rise">
+<div
+	class="fixed inset-0 bg-depth-900/60 backdrop-blur-sm z-40 flex items-center justify-center p-4"
+>
+	<div
+		class="bg-depth-700 border border-silver-400/20 rounded-2xl max-w-lg w-full p-6 animate-rise"
+	>
 		<!-- Header -->
 		<h2 class="font-serif text-xl text-silver-100 mb-2">A constellation has formed</h2>
 		<p class="text-silver-400 text-sm mb-6">
-			{$surfacedCards.length} cards have surfaced from the depths. You can now arrange them to see how they interact - or continue the conversation to surface more.
+			{$surfacedCards.length} cards have surfaced from the depths. You can now arrange them to see how
+			they interact - or continue the conversation to surface more.
 		</p>
 
 		<!-- Preview of surfaced cards -->

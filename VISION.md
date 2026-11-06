@@ -1,6 +1,6 @@
 # Act of Imagination: Vision Document
 
-*A comprehensive vision for personal and social imagination through AI-assisted conversation*
+_A comprehensive vision for personal and social imagination through AI-assisted conversation_
 
 ---
 
@@ -36,7 +36,7 @@ Users engage in dialogue that surfaces themes, tensions, and recurring images fr
 
 The visual metaphor is water - specifically, the Magic 8-Ball. Cards form like a die rising through murky liquid:
 
-1. **Submerged** - A shape exists in the depths. The subtle silver glint of displaced water signals something forming. You know *a card is forming* but not what it holds.
+1. **Submerged** - A shape exists in the depths. The subtle silver glint of displaced water signals something forming. You know _a card is forming_ but not what it holds.
 
 2. **Rising** - The shape clarifies as it ascends. Still obscured by water, but you can sense... is this a figure? A place? A tension?
 
@@ -191,7 +191,7 @@ Like a paper lantern rising into the sky. The card has done its personal work an
 
 The card travels, encounters other cards, participates in other people's arrangements (with mutual consent). The original creator can see where it's been - not as analytics, but as story:
 
-*"Your card 'The Locked Door' was placed alongside 'The Patient Key' and 'The Room That Waits' in someone's transformation arrangement."*
+_"Your card 'The Locked Door' was placed alongside 'The Patient Key' and 'The Room That Waits' in someone's transformation arrangement."_
 
 ### The Pearl Metaphor
 
@@ -283,7 +283,7 @@ A dedicated space for working with avoided material:
 - Cards representing things conspicuously not discussed
 - The shape of the hole
 - User chooses to enter, knowing what awaits
-- *"You've entered the cave. Something is waiting. Shall we see what shape it takes?"*
+- _"You've entered the cave. Something is waiting. Shall we see what shape it takes?"_
 
 ---
 
@@ -299,7 +299,7 @@ A dedicated space for working with avoided material:
 
 5. **No gamification**: No points, streaks, achievements. The reward is insight.
 
-6. **No rushing**: No timers, no "session ending" warnings. The AI's final presence isn't a question or prompt - it's a settling. *"These are yours now. They'll be here."*
+6. **No rushing**: No timers, no "session ending" warnings. The AI's final presence isn't a question or prompt - it's a settling. _"These are yours now. They'll be here."_
 
 7. **Respect boundaries**: If a user deflects or refuses, that's final. Shadow material is patient.
 
@@ -370,5 +370,5 @@ This allows natural card formation without rigid prompting.
 
 ---
 
-*Part of the Zephyrium ecosystem.*
-*Document refined through exploratory dialogue, December 2024.*
+_Part of the Zephyrium ecosystem._
+_Document refined through exploratory dialogue, December 2024._

@@ -126,14 +126,15 @@ async function syncToSupabase(state) {
 	// Debounce syncs more aggressively (2 seconds)
 	syncTimeout = setTimeout(async () => {
 		try {
-			const { data: { user } } = await supabase.auth.getUser();
+			const {
+				data: { user }
+			} = await supabase.auth.getUser();
 			if (!user) return;
 
 			// Sync cards
 			for (const card of state.cards) {
-				await supabase
-					.from('cards')
-					.upsert({
+				await supabase.from('cards').upsert(
+					{
 						id: card.id,
 						user_id: user.id,
 						session_id: state.id,
@@ -145,9 +146,11 @@ async function syncToSupabase(state) {
 						depth: card.depth,
 						source_excerpts: card.sourceExcerpts || [],
 						surfaced_at: card.surfacedAt ? new Date(card.surfacedAt).toISOString() : null
-					}, {
+					},
+					{
 						onConflict: 'id'
-					});
+					}
+				);
 			}
 		} catch (e) {
 			console.warn('Failed to sync to Supabase:', e);
@@ -160,7 +163,7 @@ function createSessionStore() {
 	const { subscribe, set, update } = writable(initialState);
 
 	// Subscribe to changes and persist
-	subscribe(state => {
+	subscribe((state) => {
 		saveSession(state);
 		syncToSupabase(state);
 	});
@@ -170,45 +173,51 @@ function createSessionStore() {
 
 		// Add a user message
 		addUserMessage: (content) => {
-			update(state => ({
+			update((state) => ({
 				...state,
-				messages: [...state.messages, {
-					id: crypto.randomUUID(),
-					role: 'user',
-					content,
-					timestamp: Date.now()
-				}],
+				messages: [
+					...state.messages,
+					{
+						id: crypto.randomUUID(),
+						role: 'user',
+						content,
+						timestamp: Date.now()
+					}
+				],
 				updatedAt: Date.now()
 			}));
 		},
 
 		// Add an assistant message
 		addAssistantMessage: (content) => {
-			update(state => ({
+			update((state) => ({
 				...state,
-				messages: [...state.messages, {
-					id: crypto.randomUUID(),
-					role: 'assistant',
-					content,
-					timestamp: Date.now()
-				}],
+				messages: [
+					...state.messages,
+					{
+						id: crypto.randomUUID(),
+						role: 'assistant',
+						content,
+						timestamp: Date.now()
+					}
+				],
 				updatedAt: Date.now()
 			}));
 		},
 
 		// Set loading state
 		setLoading: (isLoading) => {
-			update(state => ({ ...state, isLoading }));
+			update((state) => ({ ...state, isLoading }));
 		},
 
 		// Set error
 		setError: (error) => {
-			update(state => ({ ...state, error }));
+			update((state) => ({ ...state, error }));
 		},
 
 		// Process card events from the API
 		processCardEvents: (events) => {
-			update(state => {
+			update((state) => {
 				let newCards = [...state.cards];
 				let pendingProposal = state.pendingProposal;
 				let phase = state.phase;
@@ -230,10 +239,11 @@ function createSessionStore() {
 						});
 					} else if (event.event === 'deepened') {
 						// Find and deepen existing card by hint similarity
-						const cardIndex = newCards.findIndex(c =>
-							c.formationState !== 'surfaced' &&
-							(c.hint.toLowerCase().includes(event.hint.toLowerCase().slice(0, 20)) ||
-							 event.hint.toLowerCase().includes(c.hint.toLowerCase().slice(0, 20)))
+						const cardIndex = newCards.findIndex(
+							(c) =>
+								c.formationState !== 'surfaced' &&
+								(c.hint.toLowerCase().includes(event.hint.toLowerCase().slice(0, 20)) ||
+									event.hint.toLowerCase().includes(c.hint.toLowerCase().slice(0, 20)))
 						);
 						if (cardIndex !== -1) {
 							newCards[cardIndex] = {
@@ -267,7 +277,7 @@ function createSessionStore() {
 
 		// User accepts proposed card name
 		acceptProposal: (editedName = null, editedEssence = null) => {
-			update(state => {
+			update((state) => {
 				if (!state.pendingProposal) return state;
 
 				const proposal = state.pendingProposal;
@@ -276,10 +286,11 @@ function createSessionStore() {
 
 				// Find the card being proposed (by hint match) or create new
 				let newCards = [...state.cards];
-				const cardIndex = newCards.findIndex(c =>
-					c.formationState !== 'surfaced' &&
-					(c.hint.toLowerCase().includes(proposal.hint.toLowerCase().slice(0, 20)) ||
-					 proposal.hint.toLowerCase().includes(c.hint.toLowerCase().slice(0, 20)))
+				const cardIndex = newCards.findIndex(
+					(c) =>
+						c.formationState !== 'surfaced' &&
+						(c.hint.toLowerCase().includes(proposal.hint.toLowerCase().slice(0, 20)) ||
+							proposal.hint.toLowerCase().includes(c.hint.toLowerCase().slice(0, 20)))
 				);
 
 				if (cardIndex !== -1) {
@@ -308,7 +319,7 @@ function createSessionStore() {
 				}
 
 				// Check if we should transition to arrangement mode
-				const surfacedCount = newCards.filter(c => c.formationState === 'surfaced').length;
+				const surfacedCount = newCards.filter((c) => c.formationState === 'surfaced').length;
 				const newPhase = surfacedCount >= 3 ? 'TRANSITION' : 'CONVERSATION';
 
 				return {
@@ -323,7 +334,7 @@ function createSessionStore() {
 
 		// User declines proposed card
 		declineProposal: () => {
-			update(state => ({
+			update((state) => ({
 				...state,
 				pendingProposal: null,
 				phase: 'CONVERSATION'
@@ -332,7 +343,7 @@ function createSessionStore() {
 
 		// Move to arrangement play
 		enterArrangementPlay: () => {
-			update(state => ({
+			update((state) => ({
 				...state,
 				phase: 'ARRANGEMENT_PLAY',
 				updatedAt: Date.now()
@@ -341,7 +352,7 @@ function createSessionStore() {
 
 		// Continue conversation (decline transition)
 		continueConversation: () => {
-			update(state => ({
+			update((state) => ({
 				...state,
 				phase: 'CONVERSATION'
 			}));
@@ -349,38 +360,42 @@ function createSessionStore() {
 
 		// Change session phase
 		setPhase: (phase) => {
-			update(state => ({ ...state, phase }));
+			update((state) => ({ ...state, phase }));
 		},
 
 		// === DEV PANEL METHODS ===
 
 		// Add a card directly (for dev panel)
 		addCard: (card) => {
-			update(state => ({
+			update((state) => ({
 				...state,
-				cards: [...state.cards, {
-					id: crypto.randomUUID(),
-					createdAt: Date.now(),
-					surfacedAt: card.formationState === 'surfaced' ? Date.now() : null,
-					...card
-				}],
+				cards: [
+					...state.cards,
+					{
+						id: crypto.randomUUID(),
+						createdAt: Date.now(),
+						surfacedAt: card.formationState === 'surfaced' ? Date.now() : null,
+						...card
+					}
+				],
 				updatedAt: Date.now()
 			}));
 		},
 
 		// Update a specific card by ID (for dev panel)
 		updateCard: (cardId, updates) => {
-			update(state => ({
+			update((state) => ({
 				...state,
-				cards: state.cards.map(card =>
+				cards: state.cards.map((card) =>
 					card.id === cardId
 						? {
-							...card,
-							...updates,
-							surfacedAt: updates.formationState === 'surfaced' && !card.surfacedAt
-								? Date.now()
-								: card.surfacedAt
-						}
+								...card,
+								...updates,
+								surfacedAt:
+									updates.formationState === 'surfaced' && !card.surfacedAt
+										? Date.now()
+										: card.surfacedAt
+							}
 						: card
 				),
 				updatedAt: Date.now()
@@ -389,16 +404,16 @@ function createSessionStore() {
 
 		// Delete a specific card (for dev panel)
 		deleteCard: (cardId) => {
-			update(state => ({
+			update((state) => ({
 				...state,
-				cards: state.cards.filter(card => card.id !== cardId),
+				cards: state.cards.filter((card) => card.id !== cardId),
 				updatedAt: Date.now()
 			}));
 		},
 
 		// Clear all cards (for dev panel)
 		clearCards: () => {
-			update(state => ({
+			update((state) => ({
 				...state,
 				cards: [],
 				updatedAt: Date.now()
@@ -407,7 +422,7 @@ function createSessionStore() {
 
 		// Clear all messages (for dev panel)
 		clearMessages: () => {
-			update(state => ({
+			update((state) => ({
 				...state,
 				messages: [],
 				updatedAt: Date.now()
@@ -416,15 +431,15 @@ function createSessionStore() {
 
 		// Load preset data (for dev panel)
 		loadPreset: (preset) => {
-			update(state => ({
+			update((state) => ({
 				...state,
-				cards: preset.cards.map(c => ({
+				cards: preset.cards.map((c) => ({
 					...c,
 					id: crypto.randomUUID(),
 					createdAt: Date.now(),
 					surfacedAt: c.formationState === 'surfaced' ? Date.now() : null
 				})),
-				messages: preset.messages.map(m => ({
+				messages: preset.messages.map((m) => ({
 					...m,
 					id: crypto.randomUUID(),
 					timestamp: Date.now()
@@ -437,7 +452,7 @@ function createSessionStore() {
 
 		// Set a pending proposal directly (for dev panel)
 		setPendingProposal: (proposal) => {
-			update(state => ({
+			update((state) => ({
 				...state,
 				pendingProposal: proposal,
 				phase: proposal ? 'CARD_PROPOSAL' : state.phase
@@ -450,14 +465,17 @@ function createSessionStore() {
 			set(newSession);
 			// Immediately save the new session
 			if (browser) {
-				localStorage.setItem(STORAGE_KEY, JSON.stringify({
-					id: newSession.id,
-					messages: [],
-					cards: [],
-					phase: 'CONVERSATION',
-					createdAt: newSession.createdAt,
-					updatedAt: newSession.updatedAt
-				}));
+				localStorage.setItem(
+					STORAGE_KEY,
+					JSON.stringify({
+						id: newSession.id,
+						messages: [],
+						cards: [],
+						phase: 'CONVERSATION',
+						createdAt: newSession.createdAt,
+						updatedAt: newSession.updatedAt
+					})
+				);
 			}
 		},
 
@@ -473,19 +491,20 @@ function createSessionStore() {
 export const session = createSessionStore();
 
 // Derived store: surfaced cards only (for arrangement mode)
-export const surfacedCards = derived(session, $session =>
-	$session.cards.filter(c => c.formationState === 'surfaced')
+export const surfacedCards = derived(session, ($session) =>
+	$session.cards.filter((c) => c.formationState === 'surfaced')
 );
 
 // Derived store: forming cards (submerged or rising)
-export const formingCards = derived(session, $session =>
-	$session.cards.filter(c => c.formationState !== 'surfaced')
+export const formingCards = derived(session, ($session) =>
+	$session.cards.filter((c) => c.formationState !== 'surfaced')
 );
 
 // Derived store: ready for arrangement?
-export const canArrange = derived(surfacedCards, $surfaced => $surfaced.length >= 3);
+export const canArrange = derived(surfacedCards, ($surfaced) => $surfaced.length >= 3);
 
 // Derived store: has any content?
-export const hasContent = derived(session, $session =>
-	$session.messages.length > 0 || $session.cards.length > 0
+export const hasContent = derived(
+	session,
+	($session) => $session.messages.length > 0 || $session.cards.length > 0
 );

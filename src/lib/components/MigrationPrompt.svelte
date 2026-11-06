@@ -1,9 +1,7 @@
 <script>
-	import { needsMigration, getMigrationSummary, migrateToSupabase, skipMigration } from '$lib/supabase/migrate.js';
+	import { getMigrationSummary, migrateToSupabase, skipMigration } from '$lib/supabase/migrate.js';
 
-	let {
-		onComplete = () => {}
-	} = $props();
+	let { onComplete = () => {} } = $props();
 
 	let isMigrating = $state(false);
 	let error = $state(null);
@@ -35,7 +33,9 @@
 	role="dialog"
 	aria-modal="true"
 >
-	<div class="bg-depth-700 border border-silver-400/20 rounded-2xl max-w-md w-full p-6 animate-rise">
+	<div
+		class="bg-depth-700 border border-silver-400/20 rounded-2xl max-w-md w-full p-6 animate-rise"
+	>
 		<h2 class="font-serif text-xl text-silver-100 mb-2">Sync your data?</h2>
 
 		<p class="text-silver-400 text-sm mb-4">
@@ -95,7 +95,9 @@
 			>
 				{#if isMigrating}
 					<span class="flex items-center justify-center gap-2">
-						<span class="w-4 h-4 border-2 border-silver-400/30 border-t-silver-400 rounded-full animate-spin"></span>
+						<span
+							class="w-4 h-4 border-2 border-silver-400/30 border-t-silver-400 rounded-full animate-spin"
+						></span>
 						Syncing...
 					</span>
 				{:else}

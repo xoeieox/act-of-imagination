@@ -1,0 +1,42 @@
+# Replay fixture - deepen_card over an already-forming card.
+name: deepen-card
+lane: chat
+request:
+  messages:
+    - role: user
+      content: Lately I keep dreaming about a door I can't open. It's not scary, it's more like... waiting.
+    - role: assistant
+      content: A door that waits - what do you think is behind it?
+    - role: user
+      content: I think it's the version of me that actually finished things. I keep circling back to that door.
+  cardState:
+    - type: theme
+      hint: a closed door that waits
+      depth: 0.3
+      formationState: submerged
+laneResponses:
+  - choices:
+      - message:
+          content: ''
+          tool_calls:
+            - id: call_deepen_1
+              type: function
+              function:
+                name: deepen_card
+                arguments: '{"card_hint":"a closed door that waits","new_depth":0.6,"additional_excerpt":"the version of me that actually finished things"}'
+  - choices:
+      - message:
+          content: The door keeps showing up because something on the other side is asking to be met.
+expected:
+  systemPromptContains:
+    - '## Cards Currently Forming'
+    - submerged
+    - a closed door that waits
+  toolCalls:
+    - name: deepen_card
+      argumentsSubset:
+        hint: a closed door that waits
+        depth: 0.6
+        excerpt: the version of me that actually finished things
+  laneCalls: 2
+  finalContent: The door keeps showing up because something on the other side is asking to be met.

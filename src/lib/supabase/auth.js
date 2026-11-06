@@ -24,15 +24,15 @@ function createAuthStore() {
 		subscribe,
 
 		setUser: (user, session) => {
-			update(state => ({ ...state, user, session, loading: false, error: null }));
+			update((state) => ({ ...state, user, session, loading: false, error: null }));
 		},
 
 		setLoading: (loading) => {
-			update(state => ({ ...state, loading }));
+			update((state) => ({ ...state, loading }));
 		},
 
 		setError: (error) => {
-			update(state => ({ ...state, error, loading: false }));
+			update((state) => ({ ...state, error, loading: false }));
 		},
 
 		clear: () => {
@@ -44,9 +44,9 @@ function createAuthStore() {
 export const auth = createAuthStore();
 
 // Derived stores for convenience
-export const user = derived(auth, $auth => $auth.user);
-export const isAuthenticated = derived(auth, $auth => $auth.user !== null);
-export const isLoading = derived(auth, $auth => $auth.loading);
+export const user = derived(auth, ($auth) => $auth.user);
+export const isAuthenticated = derived(auth, ($auth) => $auth.user !== null);
+export const isLoading = derived(auth, ($auth) => $auth.loading);
 
 /**
  * Initialize auth state listener
@@ -60,7 +60,10 @@ export async function initAuth() {
 
 	try {
 		// Get initial session
-		const { data: { session }, error } = await supabase.auth.getSession();
+		const {
+			data: { session },
+			error
+		} = await supabase.auth.getSession();
 
 		if (error) {
 			console.error('Error getting session:', error);
@@ -162,11 +165,10 @@ export async function signOut() {
  * Create user profile after signup
  */
 async function createProfile(userId) {
-	const { error } = await supabase
-		.from('profiles')
-		.insert({ id: userId });
+	const { error } = await supabase.from('profiles').insert({ id: userId });
 
-	if (error && error.code !== '23505') { // Ignore duplicate key error
+	if (error && error.code !== '23505') {
+		// Ignore duplicate key error
 		console.error('Error creating profile:', error);
 	}
 }
@@ -176,7 +178,7 @@ async function createProfile(userId) {
  */
 export function getCurrentUserId() {
 	let userId = null;
-	auth.subscribe(state => {
+	auth.subscribe((state) => {
 		userId = state.user?.id ?? null;
 	})();
 	return userId;
@@ -192,7 +194,7 @@ export function hasLocalDataToMigrate() {
 
 	try {
 		const data = JSON.parse(stored);
-		return (data.messages?.length > 0 || data.cards?.length > 0);
+		return data.messages?.length > 0 || data.cards?.length > 0;
 	} catch {
 		return false;
 	}

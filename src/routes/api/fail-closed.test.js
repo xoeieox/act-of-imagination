@@ -182,8 +182,7 @@ describe('api routes share the lane upstream failure shape', () => {
 											type: 'function',
 											function: {
 												name: 'detect_forming_card',
-												arguments:
-													'{"type":"theme","hint":"a shape","depth":0.3,"excerpt":"stir"}'
+												arguments: '{"type":"theme","hint":"a shape","depth":0.3,"excerpt":"stir"}'
 											}
 										}
 									]

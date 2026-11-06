@@ -25,14 +25,16 @@ function createCardsStore() {
 
 		// Load all cards
 		async load() {
-			update(state => ({ ...state, loading: true, error: null }));
+			update((state) => ({ ...state, loading: true, error: null }));
 
 			try {
 				let cards = [];
 
 				// Try Supabase first if authenticated
 				if (isSupabaseConfigured() && browser) {
-					const { data: { user } } = await supabase.auth.getUser();
+					const {
+						data: { user }
+					} = await supabase.auth.getUser();
 
 					if (user) {
 						const { data, error } = await supabase
@@ -44,7 +46,7 @@ function createCardsStore() {
 						if (error) {
 							console.error('Error loading cards from Supabase:', error);
 						} else {
-							cards = data.map(c => ({
+							cards = data.map((c) => ({
 								id: c.id,
 								sessionId: c.session_id,
 								name: c.name,
@@ -97,7 +99,7 @@ function createCardsStore() {
 			};
 
 			// Update store and localStorage
-			update(state => {
+			update((state) => {
 				const cards = [newCard, ...state.cards];
 
 				if (browser) {
@@ -109,23 +111,23 @@ function createCardsStore() {
 
 			// Sync to Supabase
 			if (isSupabaseConfigured() && browser) {
-				const { data: { user } } = await supabase.auth.getUser();
+				const {
+					data: { user }
+				} = await supabase.auth.getUser();
 
 				if (user) {
-					await supabase
-						.from('cards')
-						.insert({
-							id: newCard.id,
-							user_id: user.id,
-							session_id: newCard.sessionId,
-							name: newCard.name,
-							essence: newCard.essence,
-							hint: newCard.hint,
-							type: newCard.type,
-							formation_state: newCard.formationState,
-							depth: newCard.depth,
-							source_excerpts: newCard.sourceExcerpts
-						});
+					await supabase.from('cards').insert({
+						id: newCard.id,
+						user_id: user.id,
+						session_id: newCard.sessionId,
+						name: newCard.name,
+						essence: newCard.essence,
+						hint: newCard.hint,
+						type: newCard.type,
+						formation_state: newCard.formationState,
+						depth: newCard.depth,
+						source_excerpts: newCard.sourceExcerpts
+					});
 				}
 			}
 
@@ -134,8 +136,8 @@ function createCardsStore() {
 
 		// Update a card
 		async updateCard(cardId, updates) {
-			update(state => {
-				const cards = state.cards.map(c => {
+			update((state) => {
+				const cards = state.cards.map((c) => {
 					if (c.id !== cardId) return c;
 
 					const updatedCard = { ...c, ...updates };
@@ -157,30 +159,32 @@ function createCardsStore() {
 
 			// Sync to Supabase
 			if (isSupabaseConfigured() && browser) {
-				const { data: { user } } = await supabase.auth.getUser();
+				const {
+					data: { user }
+				} = await supabase.auth.getUser();
 
 				if (user) {
 					const supabaseUpdates = {};
 					if (updates.name !== undefined) supabaseUpdates.name = updates.name;
 					if (updates.essence !== undefined) supabaseUpdates.essence = updates.essence;
 					if (updates.hint !== undefined) supabaseUpdates.hint = updates.hint;
-					if (updates.formationState !== undefined) supabaseUpdates.formation_state = updates.formationState;
+					if (updates.formationState !== undefined)
+						supabaseUpdates.formation_state = updates.formationState;
 					if (updates.depth !== undefined) supabaseUpdates.depth = updates.depth;
-					if (updates.sourceExcerpts !== undefined) supabaseUpdates.source_excerpts = updates.sourceExcerpts;
-					if (updates.formationState === 'surfaced') supabaseUpdates.surfaced_at = new Date().toISOString();
+					if (updates.sourceExcerpts !== undefined)
+						supabaseUpdates.source_excerpts = updates.sourceExcerpts;
+					if (updates.formationState === 'surfaced')
+						supabaseUpdates.surfaced_at = new Date().toISOString();
 
-					await supabase
-						.from('cards')
-						.update(supabaseUpdates)
-						.eq('id', cardId);
+					await supabase.from('cards').update(supabaseUpdates).eq('id', cardId);
 				}
 			}
 		},
 
 		// Delete a card
 		async deleteCard(cardId) {
-			update(state => {
-				const cards = state.cards.filter(c => c.id !== cardId);
+			update((state) => {
+				const cards = state.cards.filter((c) => c.id !== cardId);
 
 				if (browser) {
 					localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(cards));
@@ -191,12 +195,11 @@ function createCardsStore() {
 
 			// Sync to Supabase
 			if (isSupabaseConfigured() && browser) {
-				const { data: { user } } = await supabase.auth.getUser();
+				const {
+					data: { user }
+				} = await supabase.auth.getUser();
 				if (user) {
-					await supabase
-						.from('cards')
-						.delete()
-						.eq('id', cardId);
+					await supabase.from('cards').delete().eq('id', cardId);
 				}
 			}
 		},
@@ -220,16 +223,16 @@ function createCardsStore() {
 export const cardsStore = createCardsStore();
 
 // Derived stores
-export const cards = derived(cardsStore, $store => $store.cards);
-export const cardsLoading = derived(cardsStore, $store => $store.loading);
+export const cards = derived(cardsStore, ($store) => $store.cards);
+export const cardsLoading = derived(cardsStore, ($store) => $store.loading);
 
 // Filtered derived stores
-export const surfacedCards = derived(cardsStore, $store =>
-	$store.cards.filter(c => c.formationState === 'surfaced')
+export const surfacedCards = derived(cardsStore, ($store) =>
+	$store.cards.filter((c) => c.formationState === 'surfaced')
 );
 
-export const formingCards = derived(cardsStore, $store =>
-	$store.cards.filter(c => c.formationState !== 'surfaced')
+export const formingCards = derived(cardsStore, ($store) =>
+	$store.cards.filter((c) => c.formationState !== 'surfaced')
 );
 
 /**
@@ -238,26 +241,26 @@ export const formingCards = derived(cardsStore, $store =>
 export async function syncCardsToSupabase(cards) {
 	if (!isSupabaseConfigured() || !browser) return;
 
-	const { data: { user } } = await supabase.auth.getUser();
+	const {
+		data: { user }
+	} = await supabase.auth.getUser();
 	if (!user) return;
 
 	for (const card of cards) {
 		try {
-			await supabase
-				.from('cards')
-				.upsert({
-					id: card.id,
-					user_id: user.id,
-					session_id: card.sessionId || null,
-					name: card.name,
-					essence: card.essence,
-					hint: card.hint,
-					type: card.type,
-					formation_state: card.formationState,
-					depth: card.depth,
-					source_excerpts: card.sourceExcerpts || [],
-					surfaced_at: card.surfacedAt
-				});
+			await supabase.from('cards').upsert({
+				id: card.id,
+				user_id: user.id,
+				session_id: card.sessionId || null,
+				name: card.name,
+				essence: card.essence,
+				hint: card.hint,
+				type: card.type,
+				formation_state: card.formationState,
+				depth: card.depth,
+				source_excerpts: card.sourceExcerpts || [],
+				surfaced_at: card.surfacedAt
+			});
 		} catch (err) {
 			console.error('Error syncing card:', err);
 		}

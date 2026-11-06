@@ -1,9 +1,6 @@
 <script>
 	// Props
-	let {
-		iterations = [],
-		onClose = () => {}
-	} = $props();
+	let { iterations = [], onClose = () => {} } = $props();
 
 	// Sort by iteration number
 	let sortedIterations = $derived(
@@ -14,8 +11,8 @@
 	function getCardDifferences() {
 		if (iterations.length < 2) return { added: [], removed: [], common: [] };
 
-		const cards1 = new Map(iterations[0].cardSnapshot?.map(c => [c.id, c]) || []);
-		const cards2 = new Map(iterations[1].cardSnapshot?.map(c => [c.id, c]) || []);
+		const cards1 = new Map(iterations[0].cardSnapshot?.map((c) => [c.id, c]) || []);
+		const cards2 = new Map(iterations[1].cardSnapshot?.map((c) => [c.id, c]) || []);
 
 		const added = [];
 		const removed = [];
@@ -58,16 +55,24 @@
 	role="dialog"
 	aria-modal="true"
 >
-	<div class="bg-depth-700 border border-silver-400/20 rounded-2xl max-w-5xl w-full max-h-[90vh] flex flex-col animate-rise">
+	<div
+		class="bg-depth-700 border border-silver-400/20 rounded-2xl max-w-5xl w-full max-h-[90vh] flex flex-col animate-rise"
+	>
 		<!-- Header -->
 		<div class="p-4 border-b border-silver-400/10 flex items-center justify-between">
 			<h2 class="font-serif text-xl text-silver-100">Compare Iterations</h2>
-			<button
-				onclick={onClose}
-				class="text-silver-400 hover:text-silver-300 transition-colors"
-			>
-				<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-					<path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" />
+			<button onclick={onClose} class="text-silver-400 hover:text-silver-300 transition-colors">
+				<svg
+					xmlns="http://www.w3.org/2000/svg"
+					class="h-5 w-5"
+					viewBox="0 0 20 20"
+					fill="currentColor"
+				>
+					<path
+						fill-rule="evenodd"
+						d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
+						clip-rule="evenodd"
+					/>
 				</svg>
 			</button>
 		</div>
@@ -78,17 +83,17 @@
 				<div class="flex items-center gap-4 text-xs">
 					{#if cardDiffs.removed.length > 0}
 						<span class="text-red-400">
-							- {cardDiffs.removed.map(c => c.name).join(', ')}
+							- {cardDiffs.removed.map((c) => c.name).join(', ')}
 						</span>
 					{/if}
 					{#if cardDiffs.added.length > 0}
 						<span class="text-emerald-400">
-							+ {cardDiffs.added.map(c => c.name).join(', ')}
+							+ {cardDiffs.added.map((c) => c.name).join(', ')}
 						</span>
 					{/if}
 					{#if cardDiffs.common.length > 0 && (cardDiffs.added.length > 0 || cardDiffs.removed.length > 0)}
 						<span class="text-silver-400/60">
-							Common: {cardDiffs.common.map(c => c.name).join(', ')}
+							Common: {cardDiffs.common.map((c) => c.name).join(', ')}
 						</span>
 					{/if}
 					{#if cardDiffs.added.length === 0 && cardDiffs.removed.length === 0}
@@ -102,7 +107,9 @@
 		<div class="flex-1 overflow-auto p-4">
 			<div class="grid grid-cols-1 md:grid-cols-2 gap-4 h-full">
 				{#each sortedIterations as iteration, i (iteration.id)}
-					<div class="flex flex-col bg-depth-800/30 rounded-xl border border-silver-400/10 overflow-hidden">
+					<div
+						class="flex flex-col bg-depth-800/30 rounded-xl border border-silver-400/10 overflow-hidden"
+					>
 						<!-- Iteration header -->
 						<div class="p-3 border-b border-silver-400/10 bg-depth-800/50">
 							<div class="flex items-center justify-between mb-2">
@@ -117,12 +124,16 @@
 							<!-- Cards -->
 							<div class="flex gap-1 flex-wrap mb-2">
 								{#each iteration.cardSnapshot || [] as card}
-									{@const isRemoved = i === 0 && cardDiffs.removed.some(c => c.id === card.id)}
-									{@const isAdded = i === 1 && cardDiffs.added.some(c => c.id === card.id)}
-									<span class="px-1.5 py-0.5 text-xs rounded
-										{isRemoved ? 'bg-red-900/30 text-red-300 border border-red-400/30' :
-										 isAdded ? 'bg-emerald-900/30 text-emerald-300 border border-emerald-400/30' :
-										 'bg-depth-700 text-silver-400'}">
+									{@const isRemoved = i === 0 && cardDiffs.removed.some((c) => c.id === card.id)}
+									{@const isAdded = i === 1 && cardDiffs.added.some((c) => c.id === card.id)}
+									<span
+										class="px-1.5 py-0.5 text-xs rounded
+										{isRemoved
+											? 'bg-red-900/30 text-red-300 border border-red-400/30'
+											: isAdded
+												? 'bg-emerald-900/30 text-emerald-300 border border-emerald-400/30'
+												: 'bg-depth-700 text-silver-400'}"
+									>
 										{card.name}
 									</span>
 								{/each}

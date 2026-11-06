@@ -1,0 +1,59 @@
+# Replay fixture - the 3-attempt continuation loop is a behavior-preserved
+# invariant (I-7). The lane keeps answering with tool calls and no text; the
+# chat route makes one initial call plus three continuation attempts (4 lane
+# calls total), then stops asking and returns the minimal fallback content.
+# Note: cardEvents are mapped from the FIRST response's tool calls (the
+# route's behavior); later continuation calls drive the loop but are not
+# re-mapped. expected.toolCalls therefore describes the first response.
+name: continuation-exhausts-three-attempts
+lane: chat
+request:
+  messages:
+    - role: user
+      content: Something is stirring and I can't name it.
+  cardState: []
+laneResponses:
+  - choices:
+      - message:
+          content: ''
+          tool_calls:
+            - id: call_detect_loop1
+              type: function
+              function:
+                name: detect_forming_card
+                arguments: '{"type":"tension","hint":"an unnamed stirring","depth":0.3,"excerpt":"something is stirring"}'
+  - choices:
+      - message:
+          content: ''
+          tool_calls:
+            - id: call_deepen_loop2
+              type: function
+              function:
+                name: deepen_card
+                arguments: '{"card_hint":"an unnamed stirring","new_depth":0.6,"additional_excerpt":"I can''t name it"}'
+  - choices:
+      - message:
+          content: ''
+          tool_calls:
+            - id: call_deepen_loop3
+              type: function
+              function:
+                name: deepen_card
+                arguments: '{"card_hint":"an unnamed stirring","new_depth":0.7,"additional_excerpt":"it stays unnamed"}'
+  - choices:
+      - message:
+          content: ''
+          tool_calls:
+            - id: call_deepen_loop4
+              type: function
+              function:
+                name: deepen_card
+                arguments: '{"card_hint":"an unnamed stirring","new_depth":0.75,"additional_excerpt":"still unnamed"}'
+expected:
+  toolCalls:
+    - name: detect_forming_card
+      argumentsSubset:
+        type: tension
+        depth: 0.3
+  laneCalls: 4
+  finalContent: I'm here with you. Something is stirring beneath the surface...

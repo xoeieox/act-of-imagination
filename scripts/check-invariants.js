@@ -61,9 +61,8 @@ const isTest = (f) => f.endsWith('.test.js') || f.includes('__tests__/');
 // Everything tracked under src/ that is code or markup. The named-pin scan
 // covers this set INCLUDING test files (deliberate deviation D1 - stricter
 // than the spec's grep carve-out); the literal-host scan and the I-6a leak
-// scan scope to appSource, which excludes tests.
+// scan scope to trackedSrc minus isTest, which excludes tests.
 const trackedSrc = (f) => f.startsWith('src/') && /\.(js|svelte|html)$/.test(f);
-const appSource = (f) => trackedSrc(f) && !isTest(f);
 
 // ---- I-1 (named pins) + F-2 (loopback-only hosts in JS) ----
 // Patterns are concatenated so this gate file never self-matches a repo-wide grep.
@@ -105,7 +104,13 @@ report(
 // ---- F-1: no SDK importers of the retired provider package (now: none) ----
 const SDK_PIN = '@' + 'anthropic-ai/sdk';
 const sdkHits = [];
-for (const file of files.filter((x) => /\.(js|svelte|json)$/.test(x) && !x.includes('node_modules') && !x.endsWith('package-lock.json') && !isTest(x))) {
+for (const file of files.filter(
+	(x) =>
+		/\.(js|svelte|json)$/.test(x) &&
+		!x.includes('node_modules') &&
+		!x.endsWith('package-lock.json') &&
+		!isTest(x)
+)) {
 	const text = read(file);
 	if (text.includes(SDK_PIN)) sdkHits.push(file);
 }
@@ -122,7 +127,9 @@ const serverFileOk = (f) =>
 	(f.startsWith('src/routes/') && /\/\+(server|page\.server)\.js$/.test(f));
 
 const leakHits = [];
-for (const f of files.filter((x) => x.startsWith('src/') && /\.(js|svelte)$/.test(x) && !isTest(x))) {
+for (const f of files.filter(
+	(x) => x.startsWith('src/') && /\.(js|svelte)$/.test(x) && !isTest(x)
+)) {
 	if (serverFileOk(f)) continue;
 	const text = read(f);
 	if (SERVER_ONLY_RE.test(text)) leakHits.push(f);

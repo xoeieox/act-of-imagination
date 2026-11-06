@@ -13,27 +13,27 @@ function createNavigationStore() {
 		subscribe,
 
 		openMenu() {
-			update(state => ({ ...state, menuOpen: true }));
+			update((state) => ({ ...state, menuOpen: true }));
 		},
 
 		closeMenu() {
-			update(state => ({ ...state, menuOpen: false }));
+			update((state) => ({ ...state, menuOpen: false }));
 		},
 
 		showCards() {
-			update(state => ({ ...state, currentView: 'cards', menuOpen: false }));
+			update((state) => ({ ...state, currentView: 'cards', menuOpen: false }));
 		},
 
 		showAssemblies() {
-			update(state => ({ ...state, currentView: 'assemblies', menuOpen: false }));
+			update((state) => ({ ...state, currentView: 'assemblies', menuOpen: false }));
 		},
 
 		showHome() {
-			update(state => ({ ...state, currentView: null, menuOpen: false }));
+			update((state) => ({ ...state, currentView: null, menuOpen: false }));
 		},
 
 		clearView() {
-			update(state => ({ ...state, currentView: null }));
+			update((state) => ({ ...state, currentView: null }));
 		},
 
 		reset() {

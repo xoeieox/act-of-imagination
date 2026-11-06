@@ -6,7 +6,6 @@
 	// Props
 	let {
 		onNewSession = () => {},
-		onContinueSession = () => {},
 		onViewAssemblies = () => {},
 		onViewCards = () => {},
 		onStartArrangement = () => {}
@@ -31,9 +30,7 @@
 	<div class="max-w-md w-full text-center">
 		<!-- Title -->
 		<h2 class="font-serif text-2xl text-silver-100 mb-2">Welcome back</h2>
-		<p class="text-silver-400 text-sm mb-8">
-			What would you like to explore today?
-		</p>
+		<p class="text-silver-400 text-sm mb-8"> What would you like to explore today? </p>
 
 		<!-- Quick stats -->
 		{#if loaded && (cardCount > 0 || assemblyCount > 0)}
@@ -69,8 +66,19 @@
 					hover:bg-silver-400/20 hover:border-silver-400/50 hover:glow-subtle"
 			>
 				<span class="flex items-center justify-center gap-3">
-					<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+					<svg
+						xmlns="http://www.w3.org/2000/svg"
+						class="h-5 w-5"
+						fill="none"
+						viewBox="0 0 24 24"
+						stroke="currentColor"
+					>
+						<path
+							stroke-linecap="round"
+							stroke-linejoin="round"
+							stroke-width="2"
+							d="M12 4v16m8-8H4"
+						/>
 					</svg>
 					Start new conversation
 				</span>
@@ -84,8 +92,19 @@
 						hover:border-silver-400/40 hover:text-silver-200"
 				>
 					<span class="flex items-center justify-center gap-3">
-						<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-							<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 5a1 1 0 011-1h14a1 1 0 011 1v2a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM4 13a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H5a1 1 0 01-1-1v-6zM16 13a1 1 0 011-1h2a1 1 0 011 1v6a1 1 0 01-1 1h-2a1 1 0 01-1-1v-6z" />
+						<svg
+							xmlns="http://www.w3.org/2000/svg"
+							class="h-5 w-5"
+							fill="none"
+							viewBox="0 0 24 24"
+							stroke="currentColor"
+						>
+							<path
+								stroke-linecap="round"
+								stroke-linejoin="round"
+								stroke-width="2"
+								d="M4 5a1 1 0 011-1h14a1 1 0 011 1v2a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM4 13a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H5a1 1 0 01-1-1v-6zM16 13a1 1 0 011-1h2a1 1 0 011 1v6a1 1 0 01-1 1h-2a1 1 0 01-1-1v-6z"
+							/>
 						</svg>
 						Arrange existing cards
 					</span>

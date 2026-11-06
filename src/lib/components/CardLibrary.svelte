@@ -2,9 +2,7 @@
 	import { surfacedCards, formingCards } from '$lib/stores/session.js';
 
 	// Props
-	let {
-		onClose = () => {}
-	} = $props();
+	let { onClose = () => {} } = $props();
 
 	let searchQuery = $state('');
 	let filterType = $state('all');
@@ -17,29 +15,17 @@
 		let cards = $surfacedCards;
 
 		if (filterType !== 'all') {
-			cards = cards.filter(c => c.type === filterType);
+			cards = cards.filter((c) => c.type === filterType);
 		}
 
 		if (searchQuery.trim()) {
 			const query = searchQuery.toLowerCase();
-			cards = cards.filter(c =>
-				c.name?.toLowerCase().includes(query) ||
-				c.essence?.toLowerCase().includes(query)
+			cards = cards.filter(
+				(c) => c.name?.toLowerCase().includes(query) || c.essence?.toLowerCase().includes(query)
 			);
 		}
 
 		return cards;
-	});
-
-	// Group by type
-	let cardsByType = $derived(() => {
-		const groups = {};
-		$surfacedCards.forEach(card => {
-			const type = card.type || 'other';
-			if (!groups[type]) groups[type] = [];
-			groups[type].push(card);
-		});
-		return groups;
 	});
 
 	function getTypeLabel(type) {
@@ -71,12 +57,18 @@
 	<div class="p-4 border-b border-silver-400/10">
 		<div class="flex items-center justify-between mb-3">
 			<h3 class="font-serif text-silver-200 text-lg">Your Cards</h3>
-			<button
-				onclick={onClose}
-				class="text-silver-400 hover:text-silver-300 transition-colors"
-			>
-				<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-					<path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" />
+			<button onclick={onClose} class="text-silver-400 hover:text-silver-300 transition-colors">
+				<svg
+					xmlns="http://www.w3.org/2000/svg"
+					class="h-5 w-5"
+					viewBox="0 0 20 20"
+					fill="currentColor"
+				>
+					<path
+						fill-rule="evenodd"
+						d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
+						clip-rule="evenodd"
+					/>
 				</svg>
 			</button>
 		</div>
@@ -95,11 +87,11 @@
 		<div class="flex gap-2 flex-wrap">
 			{#each cardTypes as type}
 				<button
-					onclick={() => filterType = type}
+					onclick={() => (filterType = type)}
 					class="px-3 py-1 text-xs rounded-lg transition-all duration-200
 						{filterType === type
-							? 'bg-silver-400/20 text-silver-200 border border-silver-400/40'
-							: 'bg-depth-700 text-silver-400 border border-silver-400/10 hover:border-silver-400/30'}"
+						? 'bg-silver-400/20 text-silver-200 border border-silver-400/40'
+						: 'bg-depth-700 text-silver-400 border border-silver-400/10 hover:border-silver-400/30'}"
 				>
 					{type === 'all' ? 'All' : getTypeLabel(type)}
 				</button>
@@ -123,7 +115,9 @@
 		{:else}
 			<div class="grid gap-3">
 				{#each filteredCards() as card (card.id)}
-					<div class="card-item p-4 bg-depth-700 border border-silver-400/10 rounded-xl hover:border-silver-400/30 transition-colors">
+					<div
+						class="card-item p-4 bg-depth-700 border border-silver-400/10 rounded-xl hover:border-silver-400/30 transition-colors"
+					>
 						<div class="flex items-start justify-between gap-3">
 							<div class="flex-1 min-w-0">
 								<div class="flex items-center gap-2 mb-1">
@@ -154,8 +148,12 @@
 						<!-- Source excerpts (collapsed) -->
 						{#if card.sourceExcerpts?.length > 0}
 							<details class="mt-3">
-								<summary class="text-silver-400/60 text-xs cursor-pointer hover:text-silver-400 transition-colors">
-									{card.sourceExcerpts.length} source excerpt{card.sourceExcerpts.length > 1 ? 's' : ''}
+								<summary
+									class="text-silver-400/60 text-xs cursor-pointer hover:text-silver-400 transition-colors"
+								>
+									{card.sourceExcerpts.length} source excerpt{card.sourceExcerpts.length > 1
+										? 's'
+										: ''}
 								</summary>
 								<div class="mt-2 space-y-2">
 									{#each card.sourceExcerpts as excerpt}

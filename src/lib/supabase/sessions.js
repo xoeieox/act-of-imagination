@@ -26,14 +26,16 @@ function createSessionsStore() {
 
 		// Load all sessions
 		async load() {
-			update(state => ({ ...state, loading: true, error: null }));
+			update((state) => ({ ...state, loading: true, error: null }));
 
 			try {
 				let sessions = [];
 
 				// Try Supabase first if authenticated
 				if (isSupabaseConfigured() && browser) {
-					const { data: { user } } = await supabase.auth.getUser();
+					const {
+						data: { user }
+					} = await supabase.auth.getUser();
 
 					if (user) {
 						const { data, error } = await supabase
@@ -45,7 +47,7 @@ function createSessionsStore() {
 						if (error) {
 							console.error('Error loading sessions from Supabase:', error);
 						} else {
-							sessions = data.map(s => ({
+							sessions = data.map((s) => ({
 								id: s.id,
 								title: s.title,
 								createdAt: s.created_at,
@@ -85,17 +87,17 @@ function createSessionsStore() {
 
 			// Try Supabase first if authenticated
 			if (isSupabaseConfigured() && browser) {
-				const { data: { user } } = await supabase.auth.getUser();
+				const {
+					data: { user }
+				} = await supabase.auth.getUser();
 
 				if (user) {
 					try {
-						const { error } = await supabase
-							.from('sessions')
-							.insert({
-								id: session.id,
-								user_id: user.id,
-								title: session.title
-							});
+						const { error } = await supabase.from('sessions').insert({
+							id: session.id,
+							user_id: user.id,
+							title: session.title
+						});
 
 						if (error) {
 							console.error('Error creating session in Supabase:', error);
@@ -107,7 +109,7 @@ function createSessionsStore() {
 			}
 
 			// Update store and localStorage
-			update(state => {
+			update((state) => {
 				const sessions = [session, ...state.sessions];
 
 				if (browser) {
@@ -122,11 +124,9 @@ function createSessionsStore() {
 
 		// Update session title
 		async updateTitle(sessionId, title) {
-			update(state => {
-				const sessions = state.sessions.map(s =>
-					s.id === sessionId
-						? { ...s, title, updatedAt: new Date().toISOString() }
-						: s
+			update((state) => {
+				const sessions = state.sessions.map((s) =>
+					s.id === sessionId ? { ...s, title, updatedAt: new Date().toISOString() } : s
 				);
 
 				if (browser) {
@@ -138,7 +138,9 @@ function createSessionsStore() {
 
 			// Sync to Supabase
 			if (isSupabaseConfigured() && browser) {
-				const { data: { user } } = await supabase.auth.getUser();
+				const {
+					data: { user }
+				} = await supabase.auth.getUser();
 				if (user) {
 					await supabase
 						.from('sessions')
@@ -150,8 +152,8 @@ function createSessionsStore() {
 
 		// Delete a session
 		async deleteSession(sessionId) {
-			update(state => {
-				const sessions = state.sessions.filter(s => s.id !== sessionId);
+			update((state) => {
+				const sessions = state.sessions.filter((s) => s.id !== sessionId);
 
 				if (browser) {
 					localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(sessions));
@@ -166,19 +168,18 @@ function createSessionsStore() {
 
 			// Sync to Supabase
 			if (isSupabaseConfigured() && browser) {
-				const { data: { user } } = await supabase.auth.getUser();
+				const {
+					data: { user }
+				} = await supabase.auth.getUser();
 				if (user) {
-					await supabase
-						.from('sessions')
-						.delete()
-						.eq('id', sessionId);
+					await supabase.from('sessions').delete().eq('id', sessionId);
 				}
 			}
 		},
 
 		// Set current session
 		setCurrentSession(sessionId) {
-			update(state => ({ ...state, currentSessionId: sessionId }));
+			update((state) => ({ ...state, currentSessionId: sessionId }));
 		},
 
 		// Clear store
@@ -191,9 +192,9 @@ function createSessionsStore() {
 export const sessionsStore = createSessionsStore();
 
 // Derived stores
-export const sessions = derived(sessionsStore, $store => $store.sessions);
-export const currentSessionId = derived(sessionsStore, $store => $store.currentSessionId);
-export const sessionsLoading = derived(sessionsStore, $store => $store.loading);
+export const sessions = derived(sessionsStore, ($store) => $store.sessions);
+export const currentSessionId = derived(sessionsStore, ($store) => $store.currentSessionId);
+export const sessionsLoading = derived(sessionsStore, ($store) => $store.loading);
 
 /**
  * Messages service for a specific session
@@ -203,7 +204,9 @@ export async function loadMessages(sessionId) {
 
 	// Try Supabase first if authenticated
 	if (isSupabaseConfigured() && browser) {
-		const { data: { user } } = await supabase.auth.getUser();
+		const {
+			data: { user }
+		} = await supabase.auth.getUser();
 
 		if (user) {
 			const { data, error } = await supabase
@@ -213,7 +216,7 @@ export async function loadMessages(sessionId) {
 				.order('created_at', { ascending: true });
 
 			if (!error && data) {
-				return data.map(m => ({
+				return data.map((m) => ({
 					id: m.id,
 					role: m.role,
 					content: m.content,
@@ -253,17 +256,17 @@ export async function saveMessage(sessionId, message) {
 
 	// Sync to Supabase
 	if (isSupabaseConfigured() && browser) {
-		const { data: { user } } = await supabase.auth.getUser();
+		const {
+			data: { user }
+		} = await supabase.auth.getUser();
 
 		if (user) {
-			await supabase
-				.from('messages')
-				.insert({
-					id: message.id,
-					session_id: sessionId,
-					role: message.role,
-					content: message.content
-				});
+			await supabase.from('messages').insert({
+				id: message.id,
+				session_id: sessionId,
+				role: message.role,
+				content: message.content
+			});
 
 			// Update session timestamp
 			await supabase
@@ -285,12 +288,11 @@ export async function deleteMessages(sessionId) {
 
 	// Sync to Supabase
 	if (isSupabaseConfigured() && browser) {
-		const { data: { user } } = await supabase.auth.getUser();
+		const {
+			data: { user }
+		} = await supabase.auth.getUser();
 		if (user) {
-			await supabase
-				.from('messages')
-				.delete()
-				.eq('session_id', sessionId);
+			await supabase.from('messages').delete().eq('session_id', sessionId);
 		}
 	}
 }

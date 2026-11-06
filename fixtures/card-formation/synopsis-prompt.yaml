@@ -1,0 +1,30 @@
+# Replay fixture - /api/synopsis prompt assembly over an env-only lane,
+# canned response, zero network.
+name: synopsis-prompt
+lane: synopsis
+request:
+  cards:
+    - name: The Locked Door
+    - name: Hallway of Unfinished Rooms
+  context:
+    label: First Meeting
+  narrative: >-
+    The door stands at the end of the hallway, unchanged. The rooms lean
+    toward it, half-built walls humming.
+laneResponses:
+  - choices:
+      - message:
+          content: Readiness waiting at the end of everything left half-done.
+expected:
+  systemPromptContains:
+    - You are creating a brief synopsis of an imaginative exploration
+    - Be 1-2 sentences maximum
+    - NOT explain or interpret meaning
+    - Write in present tense
+  userPromptContains:
+    - The Locked Door, Hallway of Unfinished Rooms
+    - First Meeting
+    - half-built walls humming
+  toolsAbsent: true
+  laneCalls: 1
+  finalContent: Readiness waiting at the end of everything left half-done.

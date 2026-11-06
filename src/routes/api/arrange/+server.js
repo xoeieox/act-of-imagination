@@ -4,10 +4,14 @@ import { SYSTEM_CONTEXTS, getSystemContext } from '$lib/data/contexts.js';
 
 // Legacy context prompts for backward compatibility
 const LEGACY_CONTEXT_PROMPTS = {
-	meeting: 'These elements are encountering each other for the first time. What happens when they meet? What do they recognize in each other?',
-	conflict: 'These elements are in tension with each other. What is the nature of their conflict? What does each want that the other resists?',
-	discovery: 'Something is being revealed between these elements. What hidden truth emerges when they are placed together? What was waiting to be seen?',
-	transformation: 'One or more of these elements is changing the others. What transformation is occurring? What is being left behind, and what is emerging?'
+	meeting:
+		'These elements are encountering each other for the first time. What happens when they meet? What do they recognize in each other?',
+	conflict:
+		'These elements are in tension with each other. What is the nature of their conflict? What does each want that the other resists?',
+	discovery:
+		'Something is being revealed between these elements. What hidden truth emerges when they are placed together? What was waiting to be seen?',
+	transformation:
+		'One or more of these elements is changing the others. What transformation is occurring? What is being left behind, and what is emerging?'
 };
 
 export async function POST({ request }) {
@@ -19,9 +23,9 @@ export async function POST({ request }) {
 		}
 
 		// Build the card descriptions
-		const cardDescriptions = cards.map((card, i) =>
-			`Card ${i + 1}: "${card.name}" - ${card.essence}`
-		).join('\n');
+		const cardDescriptions = cards
+			.map((card, i) => `Card ${i + 1}: "${card.name}" - ${card.essence}`)
+			.join('\n');
 
 		// Handle both new format (context object) and legacy format (context string)
 		let contextPrompt;
@@ -31,7 +35,8 @@ export async function POST({ request }) {
 		} else if (typeof context === 'string') {
 			// Legacy format: context name string
 			const systemContext = getSystemContext(context);
-			contextPrompt = systemContext?.prompt || LEGACY_CONTEXT_PROMPTS[context] || LEGACY_CONTEXT_PROMPTS.meeting;
+			contextPrompt =
+				systemContext?.prompt || LEGACY_CONTEXT_PROMPTS[context] || LEGACY_CONTEXT_PROMPTS.meeting;
 		} else {
 			// Fallback
 			contextPrompt = SYSTEM_CONTEXTS[0].prompt;
@@ -72,7 +77,6 @@ Generate a scene or interaction that emerges from these elements meeting.`;
 		const narrative = result.content;
 
 		return json({ narrative });
-
 	} catch (error) {
 		// Shared lane shape with the other two routes: 501 unconfigured (I-2)
 		// vs 502 upstream (the thrown "no narrative content" LaneUpstreamError

@@ -55,7 +55,7 @@
 		} catch (err) {
 			console.error('Synopsis generation error:', err);
 			// Generate a simple fallback synopsis
-			synopsis = `An exploration of ${cards.map(c => c.name).join(', ')} in the context of ${context?.label || 'interaction'}.`;
+			synopsis = `An exploration of ${cards.map((c) => c.name).join(', ')} in the context of ${context?.label || 'interaction'}.`;
 		} finally {
 			isGeneratingSynopsis = false;
 		}
@@ -90,7 +90,9 @@
 	role="dialog"
 	aria-modal="true"
 >
-	<div class="bg-depth-700 border border-silver-400/20 rounded-2xl max-w-lg w-full p-6 animate-rise">
+	<div
+		class="bg-depth-700 border border-silver-400/20 rounded-2xl max-w-lg w-full p-6 animate-rise"
+	>
 		<h2 class="font-serif text-xl text-silver-100 mb-4">Save Assembly</h2>
 
 		<!-- Preview of the arrangement -->
@@ -127,7 +129,9 @@
 				<label for="assembly-synopsis" class="text-silver-400 text-sm">Synopsis</label>
 				{#if isGeneratingSynopsis}
 					<span class="text-silver-400/60 text-xs flex items-center gap-1">
-						<span class="w-3 h-3 border border-silver-400/30 border-t-silver-400 rounded-full animate-spin"></span>
+						<span
+							class="w-3 h-3 border border-silver-400/30 border-t-silver-400 rounded-full animate-spin"
+						></span>
 						Generating...
 					</span>
 				{/if}
@@ -139,8 +143,7 @@
 				placeholder="A brief summary of what this assembly explores..."
 				class="w-full px-3 py-2 bg-depth-800 border border-silver-400/20 rounded-lg
 					text-silver-100 placeholder-silver-400/40 resize-none
-					focus:border-silver-400/40 focus:outline-none transition-colors"
-			></textarea>
+					focus:border-silver-400/40 focus:outline-none transition-colors"></textarea>
 			<p class="text-silver-400/50 text-xs mt-1">
 				This helps you remember what this assembly was about.
 			</p>
@@ -148,10 +151,14 @@
 
 		<!-- Narrative preview (collapsed) -->
 		<details class="mb-6">
-			<summary class="text-silver-400 text-sm cursor-pointer hover:text-silver-300 transition-colors">
+			<summary
+				class="text-silver-400 text-sm cursor-pointer hover:text-silver-300 transition-colors"
+			>
 				View generated narrative
 			</summary>
-			<div class="mt-2 p-3 bg-depth-800/50 rounded-xl border border-silver-400/10 max-h-40 overflow-y-auto">
+			<div
+				class="mt-2 p-3 bg-depth-800/50 rounded-xl border border-silver-400/10 max-h-40 overflow-y-auto"
+			>
 				<p class="text-silver-300 text-sm font-serif whitespace-pre-wrap">{narrative}</p>
 			</div>
 		</details>
@@ -181,7 +188,9 @@
 			>
 				{#if isSaving}
 					<span class="flex items-center justify-center gap-2">
-						<span class="w-4 h-4 border-2 border-silver-400/30 border-t-silver-400 rounded-full animate-spin"></span>
+						<span
+							class="w-4 h-4 border-2 border-silver-400/30 border-t-silver-400 rounded-full animate-spin"
+						></span>
 						Saving...
 					</span>
 				{:else}

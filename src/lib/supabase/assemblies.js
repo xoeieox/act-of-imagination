@@ -25,19 +25,22 @@ function createAssembliesStore() {
 
 		// Load assemblies
 		async load() {
-			update(state => ({ ...state, loading: true, error: null }));
+			update((state) => ({ ...state, loading: true, error: null }));
 
 			try {
 				let assemblies = [];
 
 				// Try Supabase first if authenticated
 				if (isSupabaseConfigured() && browser) {
-					const { data: { user } } = await supabase.auth.getUser();
+					const {
+						data: { user }
+					} = await supabase.auth.getUser();
 
 					if (user) {
 						const { data, error } = await supabase
 							.from('assemblies')
-							.select(`
+							.select(
+								`
 								*,
 								assembly_cards (
 									card_id,
@@ -53,21 +56,24 @@ function createAssembliesStore() {
 									is_starred,
 									created_at
 								)
-							`)
+							`
+							)
 							.eq('user_id', user.id)
 							.order('updated_at', { ascending: false });
 
 						if (error) {
 							console.error('Error loading assemblies from Supabase:', error);
 						} else {
-							assemblies = data.map(a => ({
+							assemblies = data.map((a) => ({
 								id: a.id,
 								title: a.title,
 								synopsis: a.synopsis,
 								cards: a.assembly_cards
 									.sort((x, y) => x.position - y.position)
-									.map(ac => ac.cards),
-								iterations: a.assembly_iterations.sort((x, y) => x.iteration_number - y.iteration_number),
+									.map((ac) => ac.cards),
+								iterations: a.assembly_iterations.sort(
+									(x, y) => x.iteration_number - y.iteration_number
+								),
 								createdAt: a.created_at,
 								updatedAt: a.updated_at
 							}));
@@ -107,37 +113,41 @@ function createAssembliesStore() {
 					type: c.type,
 					position: i
 				})),
-				iterations: [{
-					id: crypto.randomUUID(),
-					iterationNumber: 1,
-					narrative,
-					cardSnapshot: cards.map((c, i) => ({
-						id: c.id,
-						name: c.name,
-						essence: c.essence,
-						position: i
-					})),
-					contextSnapshot: {
-						id: context.id,
-						name: context.name,
-						label: context.label,
-						prompt: context.prompt
-					},
-					isStarred: false,
-					createdAt: new Date().toISOString()
-				}],
+				iterations: [
+					{
+						id: crypto.randomUUID(),
+						iterationNumber: 1,
+						narrative,
+						cardSnapshot: cards.map((c, i) => ({
+							id: c.id,
+							name: c.name,
+							essence: c.essence,
+							position: i
+						})),
+						contextSnapshot: {
+							id: context.id,
+							name: context.name,
+							label: context.label,
+							prompt: context.prompt
+						},
+						isStarred: false,
+						createdAt: new Date().toISOString()
+					}
+				],
 				createdAt: new Date().toISOString(),
 				updatedAt: new Date().toISOString()
 			};
 
 			// Try Supabase first if authenticated
 			if (isSupabaseConfigured() && browser) {
-				const { data: { user } } = await supabase.auth.getUser();
+				const {
+					data: { user }
+				} = await supabase.auth.getUser();
 
 				if (user) {
 					try {
 						// Create assembly
-						const { data: assemblyData, error: assemblyError } = await supabase
+						const { error: assemblyError } = await supabase
 							.from('assemblies')
 							.insert({
 								id: assembly.id,
@@ -167,18 +177,16 @@ function createAssembliesStore() {
 						}
 
 						// Create first iteration
-						const { error: iterationError } = await supabase
-							.from('assembly_iterations')
-							.insert({
-								id: assembly.iterations[0].id,
-								assembly_id: assembly.id,
-								iteration_number: 1,
-								context_id: context.id?.startsWith('system-') ? null : context.id,
-								narrative,
-								card_snapshot: assembly.iterations[0].cardSnapshot,
-								context_snapshot: assembly.iterations[0].contextSnapshot,
-								is_starred: false
-							});
+						const { error: iterationError } = await supabase.from('assembly_iterations').insert({
+							id: assembly.iterations[0].id,
+							assembly_id: assembly.id,
+							iteration_number: 1,
+							context_id: context.id?.startsWith('system-') ? null : context.id,
+							narrative,
+							card_snapshot: assembly.iterations[0].cardSnapshot,
+							context_snapshot: assembly.iterations[0].contextSnapshot,
+							is_starred: false
+						});
 
 						if (iterationError) {
 							console.error('Error saving iteration:', iterationError);
@@ -191,7 +199,7 @@ function createAssembliesStore() {
 			}
 
 			// Update store and localStorage
-			update(state => {
+			update((state) => {
 				const assemblies = [assembly, ...state.assemblies];
 
 				if (browser) {
@@ -208,8 +216,8 @@ function createAssembliesStore() {
 		async addIteration(assemblyId, { context, narrative, cards }) {
 			let newIteration = null;
 
-			update(state => {
-				const assemblies = state.assemblies.map(a => {
+			update((state) => {
+				const assemblies = state.assemblies.map((a) => {
 					if (a.id !== assemblyId) return a;
 
 					const iterationNumber = a.iterations.length + 1;
@@ -249,21 +257,21 @@ function createAssembliesStore() {
 
 			// Sync to Supabase if authenticated
 			if (newIteration && isSupabaseConfigured() && browser) {
-				const { data: { user } } = await supabase.auth.getUser();
+				const {
+					data: { user }
+				} = await supabase.auth.getUser();
 
 				if (user) {
-					await supabase
-						.from('assembly_iterations')
-						.insert({
-							id: newIteration.id,
-							assembly_id: assemblyId,
-							iteration_number: newIteration.iterationNumber,
-							context_id: context.id?.startsWith('system-') ? null : context.id,
-							narrative,
-							card_snapshot: newIteration.cardSnapshot,
-							context_snapshot: newIteration.contextSnapshot,
-							is_starred: false
-						});
+					await supabase.from('assembly_iterations').insert({
+						id: newIteration.id,
+						assembly_id: assemblyId,
+						iteration_number: newIteration.iterationNumber,
+						context_id: context.id?.startsWith('system-') ? null : context.id,
+						narrative,
+						card_snapshot: newIteration.cardSnapshot,
+						context_snapshot: newIteration.contextSnapshot,
+						is_starred: false
+					});
 
 					await supabase
 						.from('assemblies')
@@ -279,13 +287,13 @@ function createAssembliesStore() {
 		async toggleStar(assemblyId, iterationId) {
 			let newStarred = false;
 
-			update(state => {
-				const assemblies = state.assemblies.map(a => {
+			update((state) => {
+				const assemblies = state.assemblies.map((a) => {
 					if (a.id !== assemblyId) return a;
 
 					return {
 						...a,
-						iterations: a.iterations.map(it => {
+						iterations: a.iterations.map((it) => {
 							if (it.id !== iterationId) return it;
 							newStarred = !it.isStarred;
 							return { ...it, isStarred: newStarred };
@@ -302,7 +310,9 @@ function createAssembliesStore() {
 
 			// Sync to Supabase
 			if (isSupabaseConfigured() && browser) {
-				const { data: { user } } = await supabase.auth.getUser();
+				const {
+					data: { user }
+				} = await supabase.auth.getUser();
 				if (user) {
 					await supabase
 						.from('assembly_iterations')
@@ -314,13 +324,13 @@ function createAssembliesStore() {
 
 		// Delete an iteration
 		async deleteIteration(assemblyId, iterationId) {
-			update(state => {
-				const assemblies = state.assemblies.map(a => {
+			update((state) => {
+				const assemblies = state.assemblies.map((a) => {
 					if (a.id !== assemblyId) return a;
 
 					return {
 						...a,
-						iterations: a.iterations.filter(it => it.id !== iterationId)
+						iterations: a.iterations.filter((it) => it.id !== iterationId)
 					};
 				});
 
@@ -333,20 +343,19 @@ function createAssembliesStore() {
 
 			// Sync to Supabase
 			if (isSupabaseConfigured() && browser) {
-				const { data: { user } } = await supabase.auth.getUser();
+				const {
+					data: { user }
+				} = await supabase.auth.getUser();
 				if (user) {
-					await supabase
-						.from('assembly_iterations')
-						.delete()
-						.eq('id', iterationId);
+					await supabase.from('assembly_iterations').delete().eq('id', iterationId);
 				}
 			}
 		},
 
 		// Delete an assembly
 		async deleteAssembly(assemblyId) {
-			update(state => {
-				const assemblies = state.assemblies.filter(a => a.id !== assemblyId);
+			update((state) => {
+				const assemblies = state.assemblies.filter((a) => a.id !== assemblyId);
 
 				if (browser) {
 					localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(assemblies));
@@ -357,12 +366,11 @@ function createAssembliesStore() {
 
 			// Sync to Supabase
 			if (isSupabaseConfigured() && browser) {
-				const { data: { user } } = await supabase.auth.getUser();
+				const {
+					data: { user }
+				} = await supabase.auth.getUser();
 				if (user) {
-					await supabase
-						.from('assemblies')
-						.delete()
-						.eq('id', assemblyId);
+					await supabase.from('assemblies').delete().eq('id', assemblyId);
 				}
 			}
 		},
@@ -370,8 +378,8 @@ function createAssembliesStore() {
 		// Get a single assembly by ID
 		getById(id) {
 			let assembly = null;
-			this.subscribe(state => {
-				assembly = state.assemblies.find(a => a.id === id);
+			this.subscribe((state) => {
+				assembly = state.assemblies.find((a) => a.id === id);
 			})();
 			return assembly;
 		},
@@ -394,8 +402,8 @@ function generateDefaultTitle(cards) {
 export const assembliesStore = createAssembliesStore();
 
 // Derived stores
-export const assemblies = derived(assembliesStore, $store => $store.assemblies);
-export const assembliesLoading = derived(assembliesStore, $store => $store.loading);
+export const assemblies = derived(assembliesStore, ($store) => $store.assemblies);
+export const assembliesLoading = derived(assembliesStore, ($store) => $store.loading);
 
 /**
  * Initialize assemblies - call on app load

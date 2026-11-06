@@ -1,0 +1,46 @@
+# Replay fixture - propose_card_naming with surfaced + rising context injected.
+name: propose-card-naming
+lane: chat
+request:
+  messages:
+    - role: user
+      content: The door, the key that never fits, the hallway of unfinished rooms - they're all the same thing, aren't they.
+  cardState:
+    - name: The Locked Door
+      type: theme
+      essence: Readiness not yet claimed
+      formationState: surfaced
+    - hint: hallway of unfinished rooms
+      type: place
+      depth: 0.7
+      formationState: rising
+laneResponses:
+  - choices:
+      - message:
+          content: ''
+          tool_calls:
+            - id: call_name_1
+              type: function
+              function:
+                name: propose_card_naming
+                arguments: '{"card_hint":"hallway of unfinished rooms","proposed_name":"Hallway of Unfinished Rooms","essence":"Everything left mid-construction, still waiting to be completed","type":"place"}'
+  - choices:
+      - message:
+          content: >-
+            This feels like it wants to be named. The hallway of everything
+            left mid-construction. Should we call it Hallway of Unfinished
+            Rooms?
+expected:
+  systemPromptContains:
+    - '## Cards Already Surfaced'
+    - The Locked Door
+    - '## Cards Currently Forming'
+    - rising
+  toolCalls:
+    - name: propose_card_naming
+      argumentsSubset:
+        hint: hallway of unfinished rooms
+        name: Hallway of Unfinished Rooms
+        type: place
+  laneCalls: 2
+  finalContentIncludes: wants to be named

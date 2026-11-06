@@ -3,7 +3,7 @@
 	import { onMount } from 'svelte';
 	import { session, hasContent } from '$lib/stores/session.js';
 	import { navigation } from '$lib/stores/navigation.js';
-	import { auth, initAuth, isAuthenticated, signOut } from '$lib/supabase/auth.js';
+	import { auth, initAuth, isAuthenticated } from '$lib/supabase/auth.js';
 	import { isSupabaseConfigured } from '$lib/supabase/client.js';
 	import { needsMigration } from '$lib/supabase/migrate.js';
 	import HamburgerMenu from '$lib/components/HamburgerMenu.svelte';
@@ -11,7 +11,6 @@
 
 	let { children } = $props();
 	let showConfirm = $state(false);
-	let showAuthMenu = $state(false);
 	let showMigration = $state(false);
 	let checkedMigration = $state(false);
 
@@ -50,15 +49,6 @@
 	function cancelReset() {
 		showConfirm = false;
 	}
-
-	function toggleAuthMenu() {
-		showAuthMenu = !showAuthMenu;
-	}
-
-	async function handleSignOut() {
-		await signOut();
-		showAuthMenu = false;
-	}
 </script>
 
 <div class="h-screen flex flex-col overflow-hidden">
@@ -71,8 +61,19 @@
 				class="p-1 text-silver-400 hover:text-silver-300 transition-colors"
 				aria-label="Open menu"
 			>
-				<svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-					<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+				<svg
+					xmlns="http://www.w3.org/2000/svg"
+					class="h-6 w-6"
+					fill="none"
+					viewBox="0 0 24 24"
+					stroke="currentColor"
+				>
+					<path
+						stroke-linecap="round"
+						stroke-linejoin="round"
+						stroke-width="2"
+						d="M4 6h16M4 12h16M4 18h16"
+					/>
 				</svg>
 			</button>
 
@@ -90,9 +91,7 @@
 			{/if}
 		</div>
 
-		<h1 class="font-serif text-xl text-silver-100 tracking-wide">
-			Act of Imagination
-		</h1>
+		<h1 class="font-serif text-xl text-silver-100 tracking-wide"> Act of Imagination </h1>
 
 		<div class="w-32 flex justify-end">
 			{#if $hasContent}
@@ -109,8 +108,12 @@
 
 	<!-- Confirmation modal -->
 	{#if showConfirm}
-		<div class="fixed inset-0 bg-depth-900/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-			<div class="bg-depth-700 border border-silver-400/20 rounded-2xl max-w-sm w-full p-6 animate-rise">
+		<div
+			class="fixed inset-0 bg-depth-900/80 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+		>
+			<div
+				class="bg-depth-700 border border-silver-400/20 rounded-2xl max-w-sm w-full p-6 animate-rise"
+			>
 				<h2 class="font-serif text-lg text-silver-100 mb-2">Start fresh?</h2>
 				<p class="text-silver-400 text-sm mb-6">
 					This will clear your current conversation and cards. This cannot be undone.

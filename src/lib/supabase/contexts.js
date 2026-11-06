@@ -1,7 +1,6 @@
 import { writable, derived } from 'svelte/store';
 import { browser } from '$app/environment';
 import { supabase, isSupabaseConfigured } from './client.js';
-import { isAuthenticated } from './auth.js';
 import { SYSTEM_CONTEXTS, getSystemContext } from '$lib/data/contexts.js';
 
 /**
@@ -28,14 +27,16 @@ function createContextsStore() {
 
 		// Load user contexts from localStorage or Supabase
 		async load() {
-			update(state => ({ ...state, loading: true, error: null }));
+			update((state) => ({ ...state, loading: true, error: null }));
 
 			try {
 				let userContexts = [];
 
 				// Try Supabase first if authenticated
 				if (isSupabaseConfigured() && browser) {
-					const { data: { user } } = await supabase.auth.getUser();
+					const {
+						data: { user }
+					} = await supabase.auth.getUser();
 
 					if (user) {
 						const { data, error } = await supabase
@@ -48,7 +49,7 @@ function createContextsStore() {
 						if (error) {
 							console.error('Error loading contexts from Supabase:', error);
 						} else {
-							userContexts = data.map(c => ({
+							userContexts = data.map((c) => ({
 								id: c.id,
 								name: c.name,
 								label: c.label,
@@ -94,7 +95,9 @@ function createContextsStore() {
 
 			// Try Supabase first if authenticated
 			if (isSupabaseConfigured() && browser) {
-				const { data: { user } } = await supabase.auth.getUser();
+				const {
+					data: { user }
+				} = await supabase.auth.getUser();
 
 				if (user) {
 					const { data, error } = await supabase
@@ -121,7 +124,7 @@ function createContextsStore() {
 			}
 
 			// Update store
-			update(state => {
+			update((state) => {
 				const userContexts = [...state.userContexts, newContext];
 
 				// Save to localStorage as backup
@@ -139,7 +142,9 @@ function createContextsStore() {
 		async updateContext(id, updates) {
 			// Try Supabase first if authenticated
 			if (isSupabaseConfigured() && browser) {
-				const { data: { user } } = await supabase.auth.getUser();
+				const {
+					data: { user }
+				} = await supabase.auth.getUser();
 
 				if (user) {
 					const { error } = await supabase
@@ -161,8 +166,8 @@ function createContextsStore() {
 			}
 
 			// Update store
-			update(state => {
-				const userContexts = state.userContexts.map(c =>
+			update((state) => {
+				const userContexts = state.userContexts.map((c) =>
 					c.id === id ? { ...c, ...updates } : c
 				);
 
@@ -179,7 +184,9 @@ function createContextsStore() {
 		async deleteContext(id) {
 			// Try Supabase first if authenticated
 			if (isSupabaseConfigured() && browser) {
-				const { data: { user } } = await supabase.auth.getUser();
+				const {
+					data: { user }
+				} = await supabase.auth.getUser();
 
 				if (user) {
 					const { error } = await supabase
@@ -196,8 +203,8 @@ function createContextsStore() {
 			}
 
 			// Update store
-			update(state => {
-				const userContexts = state.userContexts.filter(c => c.id !== id);
+			update((state) => {
+				const userContexts = state.userContexts.filter((c) => c.id !== id);
 
 				// Save to localStorage
 				if (browser) {
@@ -218,12 +225,12 @@ function createContextsStore() {
 export const contextsStore = createContextsStore();
 
 // Derived store: all contexts (system + user)
-export const allContexts = derived(contextsStore, $store => {
+export const allContexts = derived(contextsStore, ($store) => {
 	return [...SYSTEM_CONTEXTS, ...$store.userContexts];
 });
 
 // Derived store: just user contexts
-export const userContexts = derived(contextsStore, $store => $store.userContexts);
+export const userContexts = derived(contextsStore, ($store) => $store.userContexts);
 
 /**
  * Get a context by ID (checks both system and user contexts)
@@ -234,7 +241,7 @@ export function getContext(id, userContextsList = []) {
 	if (systemContext) return systemContext;
 
 	// Check user contexts
-	return userContextsList.find(c => c.id === id);
+	return userContextsList.find((c) => c.id === id);
 }
 
 /**

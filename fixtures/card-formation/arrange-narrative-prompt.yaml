@@ -1,0 +1,34 @@
+# Replay fixture - /api/arrange prompt assembly over an env-only lane,
+# canned response, zero network.
+name: arrange-narrative-prompt
+lane: arrange
+request:
+  cards:
+    - name: The Locked Door
+      essence: Readiness not yet claimed
+    - name: Hallway of Unfinished Rooms
+      essence: Everything left mid-construction
+  context:
+    id: meeting
+    label: First Meeting
+    prompt: These elements are encountering each other for the first time. What happens when they meet?
+laneResponses:
+  - choices:
+      - message:
+          content: >-
+            The door stands at the end of the hallway, unchanged. The rooms
+            lean toward it, half-built walls humming. A handle turns nowhere.
+            Somewhere a hinge that has never moved considers moving.
+expected:
+  systemPromptContains:
+    - You are a narrator witnessing an interaction
+    - Do NOT interpret or explain
+    - present tense
+  userPromptContains:
+    - The Locked Door
+    - Readiness not yet claimed
+    - Hallway of Unfinished Rooms
+    - encountering each other for the first time
+  toolsAbsent: true
+  laneCalls: 1
+  finalContentIncludes: half-built walls

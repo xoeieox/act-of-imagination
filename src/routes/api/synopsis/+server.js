@@ -10,7 +10,7 @@ export async function POST({ request }) {
 		}
 
 		// Build the card names
-		const cardNames = cards.map(c => c.name).join(', ');
+		const cardNames = cards.map((c) => c.name).join(', ');
 		const contextLabel = context?.label || 'interaction';
 
 		const systemPrompt = `You are creating a brief synopsis of an imaginative exploration. Your synopsis should:
@@ -45,7 +45,6 @@ Write a 1-2 sentence synopsis that captures what this assembly explores.`;
 		const synopsis = result.content.trim();
 
 		return json({ synopsis });
-
 	} catch (error) {
 		// Shared lane shape with the other two routes: 501 unconfigured (I-2) / 502 upstream.
 		const laneShape = laneErrorShape(error);
@@ -54,9 +53,6 @@ Write a 1-2 sentence synopsis that captures what this assembly explores.`;
 			return json(laneShape.body, { status: laneShape.status });
 		}
 		console.error('Synopsis API error:', error);
-		return json(
-			{ error: 'Failed to generate synopsis', details: error.message },
-			{ status: 500 }
-		);
+		return json({ error: 'Failed to generate synopsis', details: error.message }, { status: 500 });
 	}
 }

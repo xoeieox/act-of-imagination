@@ -16,11 +16,13 @@ const TOOLS = [
 				},
 				hint: {
 					type: 'string',
-					description: 'A brief, evocative hint about what is forming (1-2 sentences, poetic/impressionistic)'
+					description:
+						'A brief, evocative hint about what is forming (1-2 sentences, poetic/impressionistic)'
 				},
 				depth: {
 					type: 'number',
-					description: 'How much weight/significance this carries (0.1 to 0.5 for initial detection)'
+					description:
+						'How much weight/significance this carries (0.1 to 0.5 for initial detection)'
 				},
 				excerpt: {
 					type: 'string',
@@ -64,7 +66,8 @@ const TOOLS = [
 				},
 				proposed_name: {
 					type: 'string',
-					description: 'A evocative name for the card (2-5 words, like "The Locked Door" or "Weight of Waiting")'
+					description:
+						'A evocative name for the card (2-5 words, like "The Locked Door" or "Weight of Waiting")'
 				},
 				essence: {
 					type: 'string',
@@ -115,8 +118,8 @@ export async function POST({ request }) {
 
 		// Format messages for the lane, filtering out empty content
 		const formattedMessages = messages
-			.filter(m => m.content && m.content.trim() !== '')
-			.map(m => ({
+			.filter((m) => m.content && m.content.trim() !== '')
+			.map((m) => ({
 				role: m.role,
 				content: m.content
 			}));
@@ -124,19 +127,19 @@ export async function POST({ request }) {
 		// Build context about existing cards
 		let systemAddition = '';
 		if (cards && cards.length > 0) {
-			const surfacedCards = cards.filter(c => c.formationState === 'surfaced');
-			const formingCards = cards.filter(c => c.formationState !== 'surfaced');
+			const surfacedCards = cards.filter((c) => c.formationState === 'surfaced');
+			const formingCards = cards.filter((c) => c.formationState !== 'surfaced');
 
 			if (surfacedCards.length > 0) {
 				systemAddition += '\n\n## Cards Already Surfaced\n';
-				surfacedCards.forEach(c => {
+				surfacedCards.forEach((c) => {
 					systemAddition += `- "${c.name}" (${c.type}): ${c.essence}\n`;
 				});
 			}
 
 			if (formingCards.length > 0) {
 				systemAddition += '\n\n## Cards Currently Forming\n';
-				formingCards.forEach(c => {
+				formingCards.forEach((c) => {
 					systemAddition += `- [${c.formationState}] ${c.type}: "${c.hint}" (depth: ${c.depth})\n`;
 				});
 			}
@@ -207,9 +210,9 @@ export async function POST({ request }) {
 				{
 					role: 'assistant',
 					content: currentResult.content || null,
-					tool_calls: currentResult.toolCalls.map(c => c.raw)
+					tool_calls: currentResult.toolCalls.map((c) => c.raw)
 				},
-				...currentResult.toolCalls.map(c => ({
+				...currentResult.toolCalls.map((c) => ({
 					role: 'tool',
 					tool_call_id: c.id,
 					content: 'Card formation noted. Please provide a conversational response to the user.'
@@ -240,7 +243,6 @@ export async function POST({ request }) {
 			content: finalContent,
 			cardEvents
 		});
-
 	} catch (error) {
 		// Lane failures (including mid-continuation attempts 2..3) get the
 		// shared machine-readable shape - 501 unconfigured (I-2) / 502 upstream.
@@ -250,9 +252,6 @@ export async function POST({ request }) {
 			return json(laneShape.body, { status: laneShape.status });
 		}
 		console.error('Chat API error:', error);
-		return json(
-			{ error: 'Failed to process request', details: error.message },
-			{ status: 500 }
-		);
+		return json({ error: 'Failed to process request', details: error.message }, { status: 500 });
 	}
 }

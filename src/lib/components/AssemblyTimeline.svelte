@@ -10,9 +10,7 @@
 	} = $props();
 
 	// Get reactive assembly from store to ensure star updates show immediately
-	let assembly = $derived(
-		$assemblies.find(a => a.id === assemblyProp?.id) || assemblyProp
-	);
+	let assembly = $derived($assemblies.find((a) => a.id === assemblyProp?.id) || assemblyProp);
 
 	let selectedIterations = $state(new Set());
 	let isCompareMode = $state(false);
@@ -23,8 +21,8 @@
 	let allCards = $derived(() => {
 		if (!assembly?.iterations) return [];
 		const cardMap = new Map();
-		assembly.iterations.forEach(it => {
-			it.cardSnapshot?.forEach(card => {
+		assembly.iterations.forEach((it) => {
+			it.cardSnapshot?.forEach((card) => {
 				if (!cardMap.has(card.id)) {
 					cardMap.set(card.id, card);
 				}
@@ -38,9 +36,9 @@
 		if (!assembly?.iterations) return [];
 		if (filterCardIds.size === 0) return assembly.iterations;
 
-		return assembly.iterations.filter(it => {
-			const iterationCardIds = new Set(it.cardSnapshot?.map(c => c.id) || []);
-			return Array.from(filterCardIds).every(id => iterationCardIds.has(id));
+		return assembly.iterations.filter((it) => {
+			const iterationCardIds = new Set(it.cardSnapshot?.map((c) => c.id) || []);
+			return Array.from(filterCardIds).every((id) => iterationCardIds.has(id));
 		});
 	});
 
@@ -74,7 +72,7 @@
 
 	function startCompare() {
 		if (selectedIterations.size >= 2) {
-			const selected = assembly.iterations.filter(it => selectedIterations.has(it.id));
+			const selected = assembly.iterations.filter((it) => selectedIterations.has(it.id));
 			onCompare(selected);
 		}
 	}
@@ -110,12 +108,18 @@
 	<div class="p-4 border-b border-silver-400/10">
 		<div class="flex items-center justify-between mb-2">
 			<h3 class="font-serif text-silver-200">{assembly?.title || 'Assembly Timeline'}</h3>
-			<button
-				onclick={onClose}
-				class="text-silver-400 hover:text-silver-300 transition-colors"
-			>
-				<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-					<path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" />
+			<button onclick={onClose} class="text-silver-400 hover:text-silver-300 transition-colors">
+				<svg
+					xmlns="http://www.w3.org/2000/svg"
+					class="h-5 w-5"
+					viewBox="0 0 20 20"
+					fill="currentColor"
+				>
+					<path
+						fill-rule="evenodd"
+						d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
+						clip-rule="evenodd"
+					/>
 				</svg>
 			</button>
 		</div>
@@ -134,8 +138,8 @@
 						onclick={() => toggleCardFilter(card.id)}
 						class="px-2 py-1 text-xs rounded transition-all duration-200
 							{filterCardIds.has(card.id)
-								? 'bg-silver-400/20 text-silver-200 border border-silver-400/40'
-								: 'bg-depth-700 text-silver-400 border border-silver-400/10 hover:border-silver-400/30'}"
+							? 'bg-silver-400/20 text-silver-200 border border-silver-400/40'
+							: 'bg-depth-700 text-silver-400 border border-silver-400/10 hover:border-silver-400/30'}"
 					>
 						{card.name}
 					</button>
@@ -154,7 +158,9 @@
 
 	<!-- Compare mode controls -->
 	{#if isCompareMode}
-		<div class="p-3 bg-depth-800/50 border-b border-silver-400/10 flex items-center justify-between">
+		<div
+			class="p-3 bg-depth-800/50 border-b border-silver-400/10 flex items-center justify-between"
+		>
 			<span class="text-silver-400 text-sm">
 				{selectedIterations.size} selected
 			</span>
@@ -170,8 +176,8 @@
 					disabled={selectedIterations.size < 2}
 					class="px-3 py-1 text-xs rounded transition-all duration-200
 						{selectedIterations.size >= 2
-							? 'bg-silver-400/20 text-silver-200'
-							: 'bg-depth-700 text-silver-400/50 cursor-not-allowed'}"
+						? 'bg-silver-400/20 text-silver-200'
+						: 'bg-depth-700 text-silver-400/50 cursor-not-allowed'}"
 				>
 					Compare
 				</button>
@@ -180,7 +186,7 @@
 	{:else}
 		<div class="p-3 border-b border-silver-400/10 flex justify-end">
 			<button
-				onclick={() => isCompareMode = true}
+				onclick={() => (isCompareMode = true)}
 				class="text-silver-400 hover:text-silver-300 text-xs transition-colors"
 			>
 				Select to compare
@@ -207,15 +213,27 @@
 						>
 							{#if isCompareMode}
 								<button
-									onclick={(e) => { e.stopPropagation(); toggleSelect(iteration.id); }}
+									onclick={(e) => {
+										e.stopPropagation();
+										toggleSelect(iteration.id);
+									}}
 									class="mt-1 w-4 h-4 rounded border transition-colors
 										{selectedIterations.has(iteration.id)
-											? 'bg-silver-400/30 border-silver-400'
-											: 'border-silver-400/30 hover:border-silver-400/60'}"
+										? 'bg-silver-400/30 border-silver-400'
+										: 'border-silver-400/30 hover:border-silver-400/60'}"
 								>
 									{#if selectedIterations.has(iteration.id)}
-										<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-silver-200" viewBox="0 0 20 20" fill="currentColor">
-											<path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
+										<svg
+											xmlns="http://www.w3.org/2000/svg"
+											class="h-4 w-4 text-silver-200"
+											viewBox="0 0 20 20"
+											fill="currentColor"
+										>
+											<path
+												fill-rule="evenodd"
+												d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+												clip-rule="evenodd"
+											/>
 										</svg>
 									{/if}
 								</button>
@@ -227,8 +245,15 @@
 										#{iteration.iterationNumber}
 									</span>
 									{#if iteration.isStarred}
-										<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-yellow-400" viewBox="0 0 20 20" fill="currentColor">
-											<path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+										<svg
+											xmlns="http://www.w3.org/2000/svg"
+											class="h-4 w-4 text-yellow-400"
+											viewBox="0 0 20 20"
+											fill="currentColor"
+										>
+											<path
+												d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"
+											/>
 										</svg>
 									{/if}
 									<span class="text-silver-400/60 text-xs">
@@ -247,7 +272,9 @@
 
 								<!-- Context -->
 								<p class="text-silver-400/60 text-xs">
-									in <span class="text-silver-400">{iteration.contextSnapshot?.label || 'unknown'}</span>
+									in <span class="text-silver-400"
+										>{iteration.contextSnapshot?.label || 'unknown'}</span
+									>
 								</p>
 							</div>
 
@@ -259,7 +286,11 @@
 								viewBox="0 0 20 20"
 								fill="currentColor"
 							>
-								<path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
+								<path
+									fill-rule="evenodd"
+									d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
+									clip-rule="evenodd"
+								/>
 							</svg>
 						</div>
 
@@ -279,8 +310,8 @@
 										onclick={() => handleStar(iteration.id)}
 										class="px-3 py-1.5 text-xs rounded transition-all duration-200
 											{iteration.isStarred
-												? 'bg-yellow-900/30 text-yellow-300 border border-yellow-400/30'
-												: 'bg-depth-700 text-silver-400 border border-silver-400/10 hover:border-silver-400/30'}"
+											? 'bg-yellow-900/30 text-yellow-300 border border-yellow-400/30'
+											: 'bg-depth-700 text-silver-400 border border-silver-400/10 hover:border-silver-400/30'}"
 									>
 										{iteration.isStarred ? 'Unstar' : 'Star'}
 									</button>
@@ -309,8 +340,8 @@
 	<div class="p-3 border-t border-silver-400/10 bg-depth-800/30">
 		<p class="text-silver-400/60 text-xs text-center">
 			{assembly?.iterations?.length || 0} iterations
-			{#if assembly?.iterations?.some(it => it.isStarred)}
-				&middot; {assembly.iterations.filter(it => it.isStarred).length} starred
+			{#if assembly?.iterations?.some((it) => it.isStarred)}
+				&middot; {assembly.iterations.filter((it) => it.isStarred).length} starred
 			{/if}
 		</p>
 	</div>

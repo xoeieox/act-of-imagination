@@ -24,7 +24,7 @@
 	}
 
 	function transitionCard(cardId, newState) {
-		const card = $session.cards.find(c => c.id === cardId);
+		const card = $session.cards.find((c) => c.id === cardId);
 		const updates = { formationState: newState };
 
 		if (newState === 'surfaced') {
@@ -44,7 +44,8 @@
 		session.setPendingProposal({
 			hint: 'A shape emerging from the conversation',
 			name: 'Test Proposed Card',
-			essence: 'This is a test essence for the proposal modal. It should be long enough to verify the textarea sizing is adequate for reading and editing.',
+			essence:
+				'This is a test essence for the proposal modal. It should be long enough to verify the textarea sizing is adequate for reading and editing.',
 			type: 'theme'
 		});
 	}
@@ -307,15 +308,13 @@
 				</div>
 
 				<div>
-					<label class="block text-xs text-silver-400 uppercase tracking-wider mb-1">Essence</label
-					>
+					<label class="block text-xs text-silver-400 uppercase tracking-wider mb-1">Essence</label>
 					<textarea
 						bind:value={editingCard.essence}
 						rows="3"
 						class="w-full bg-depth-600 border border-silver-400/20 rounded-lg text-silver-200 p-2
 							focus:outline-none focus:border-silver-400/40 resize-y min-h-[80px]"
-						placeholder="What this card represents..."
-					></textarea>
+						placeholder="What this card represents..."></textarea>
 				</div>
 
 				<div>

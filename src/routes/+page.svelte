@@ -12,6 +12,11 @@
 	import CardLibrary from '$lib/components/CardLibrary.svelte';
 	import AssemblyTimeline from '$lib/components/AssemblyTimeline.svelte';
 	import IterationComparison from '$lib/components/IterationComparison.svelte';
+	import LaneGate from '$lib/components/LaneGate.svelte';
+
+	// Honest first run (F-3): lane configuration state from the server load -
+	// rendered into the initial HTML with zero API fetch.
+	let { data } = $props();
 
 	let messagesContainer = $state(null);
 
@@ -25,8 +30,8 @@
 	// Show welcome screen for returning users with no active conversation
 	let showWelcome = $derived(
 		$session.messages.length === 0 &&
-		$session.phase === 'CONVERSATION' &&
-		($surfacedCards.length > 0 || $hasContent)
+			$session.phase === 'CONVERSATION' &&
+			($surfacedCards.length > 0 || $hasContent)
 	);
 
 	function handleSelectAssembly(assembly) {
@@ -178,14 +183,15 @@
 	}
 </script>
 
+{#if data && !data.lanesConfigured}
+	<LaneGate hint={data.laneHint ?? ''} />
+{/if}
+
 <!-- Arrangement Play Mode -->
 {#if $session.phase === 'ARRANGEMENT_PLAY'}
-	<ArrangementPlay
-		initialAssembly={loadedAssembly}
-		onLoaded={() => loadedAssembly = null}
-	/>
+	<ArrangementPlay initialAssembly={loadedAssembly} onLoaded={() => (loadedAssembly = null)} />
 
-<!-- Card Proposal Modal -->
+	<!-- Card Proposal Modal -->
 {:else if $session.phase === 'CARD_PROPOSAL' && $session.pendingProposal}
 	<CardProposal proposal={$session.pendingProposal} />
 	<!-- Show conversation behind the modal -->
@@ -214,7 +220,7 @@
 		</aside>
 	</div>
 
-<!-- Transition Prompt Modal -->
+	<!-- Transition Prompt Modal -->
 {:else if $session.phase === 'TRANSITION'}
 	<TransitionPrompt />
 	<!-- Show conversation behind the modal -->
@@ -242,11 +248,13 @@
 		</aside>
 	</div>
 
-<!-- Normal Conversation Mode -->
+	<!-- Normal Conversation Mode -->
 {:else}
 	<div class="flex-1 flex w-full max-w-7xl mx-auto overflow-hidden">
 		<!-- Left Cards Panel -->
-		<aside class="w-64 p-4 border-r border-silver-400/10 hidden lg:block overflow-y-auto flex-shrink-0">
+		<aside
+			class="w-64 p-4 border-r border-silver-400/10 hidden lg:block overflow-y-auto flex-shrink-0"
+		>
 			<h2 class="text-sm text-silver-400 uppercase tracking-wider mb-4">Forming</h2>
 			<div class="space-y-3">
 				{#each $formingCards as card (card.id)}
@@ -279,11 +287,10 @@
 					<!-- Welcome state for new users -->
 					<div class="h-full flex items-center justify-center">
 						<div class="text-center max-w-md">
-							<p class="text-silver-300 font-serif text-lg mb-2">
-								Welcome.
-							</p>
+							<p class="text-silver-300 font-serif text-lg mb-2"> Welcome. </p>
 							<p class="text-silver-400 text-sm">
-								This is a space for exploration. Share what's on your mind - a thought, a dream, a tension you've been holding. We'll see what wants to surface.
+								This is a space for exploration. Share what's on your mind - a thought, a dream, a
+								tension you've been holding. We'll see what wants to surface.
 							</p>
 						</div>
 					</div>
@@ -296,9 +303,18 @@
 						<div class="flex justify-start">
 							<div class="message-assistant px-4 py-3">
 								<div class="flex space-x-1">
-									<span class="w-2 h-2 bg-silver-400 rounded-full animate-bounce" style="animation-delay: 0ms"></span>
-									<span class="w-2 h-2 bg-silver-400 rounded-full animate-bounce" style="animation-delay: 150ms"></span>
-									<span class="w-2 h-2 bg-silver-400 rounded-full animate-bounce" style="animation-delay: 300ms"></span>
+									<span
+										class="w-2 h-2 bg-silver-400 rounded-full animate-bounce"
+										style="animation-delay: 0ms"
+									></span>
+									<span
+										class="w-2 h-2 bg-silver-400 rounded-full animate-bounce"
+										style="animation-delay: 150ms"
+									></span>
+									<span
+										class="w-2 h-2 bg-silver-400 rounded-full animate-bounce"
+										style="animation-delay: 300ms"
+									></span>
 								</div>
 							</div>
 						</div>
@@ -344,16 +360,17 @@
 		</div>
 
 		<!-- Right Cards Panel -->
-		<aside class="w-80 pl-4 pr-5 py-4 border-l border-silver-400/10 hidden lg:block overflow-y-auto flex-shrink-0" style="scrollbar-gutter: stable;">
+		<aside
+			class="w-80 pl-4 pr-5 py-4 border-l border-silver-400/10 hidden lg:block overflow-y-auto flex-shrink-0"
+			style="scrollbar-gutter: stable;"
+		>
 			<h2 class="text-sm text-silver-400 uppercase tracking-wider mb-4">Surfaced</h2>
 			<div class="space-y-3">
 				{#each $surfacedCards as card (card.id)}
 					<Card {card} />
 				{/each}
 				{#if $surfacedCards.length === 0}
-					<p class="text-silver-400/50 text-sm italic">
-						Named cards will appear here...
-					</p>
+					<p class="text-silver-400/50 text-sm italic"> Named cards will appear here... </p>
 				{/if}
 			</div>
 
@@ -377,16 +394,31 @@
 
 <!-- Overlay Panels -->
 {#if showAssemblies}
-	<div class="fixed inset-0 bg-depth-900/90 backdrop-blur-sm z-40 flex items-center justify-center p-4">
-		<div class="bg-depth-800 border border-silver-400/20 rounded-2xl max-w-2xl w-full max-h-[80vh] overflow-hidden flex flex-col animate-rise">
+	<div
+		class="fixed inset-0 bg-depth-900/90 backdrop-blur-sm z-40 flex items-center justify-center p-4"
+	>
+		<div
+			class="bg-depth-800 border border-silver-400/20 rounded-2xl max-w-2xl w-full max-h-[80vh] overflow-hidden flex flex-col animate-rise"
+		>
 			<div class="p-4 border-b border-silver-400/10 flex items-center justify-between">
 				<h2 class="font-serif text-xl text-silver-100">Your Assemblies</h2>
 				<button
 					onclick={closeAllPanels}
 					class="text-silver-400 hover:text-silver-200 transition-colors"
 				>
-					<svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+					<svg
+						xmlns="http://www.w3.org/2000/svg"
+						class="h-6 w-6"
+						fill="none"
+						viewBox="0 0 24 24"
+						stroke="currentColor"
+					>
+						<path
+							stroke-linecap="round"
+							stroke-linejoin="round"
+							stroke-width="2"
+							d="M6 18L18 6M6 6l12 12"
+						/>
 					</svg>
 				</button>
 			</div>
@@ -402,16 +434,31 @@
 {/if}
 
 {#if showCards}
-	<div class="fixed inset-0 bg-depth-900/90 backdrop-blur-sm z-40 flex items-center justify-center p-4">
-		<div class="bg-depth-800 border border-silver-400/20 rounded-2xl max-w-2xl w-full max-h-[80vh] overflow-hidden flex flex-col animate-rise">
+	<div
+		class="fixed inset-0 bg-depth-900/90 backdrop-blur-sm z-40 flex items-center justify-center p-4"
+	>
+		<div
+			class="bg-depth-800 border border-silver-400/20 rounded-2xl max-w-2xl w-full max-h-[80vh] overflow-hidden flex flex-col animate-rise"
+		>
 			<div class="p-4 border-b border-silver-400/10 flex items-center justify-between">
 				<h2 class="font-serif text-xl text-silver-100">Your Cards</h2>
 				<button
 					onclick={closeAllPanels}
 					class="text-silver-400 hover:text-silver-200 transition-colors"
 				>
-					<svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+					<svg
+						xmlns="http://www.w3.org/2000/svg"
+						class="h-6 w-6"
+						fill="none"
+						viewBox="0 0 24 24"
+						stroke="currentColor"
+					>
+						<path
+							stroke-linecap="round"
+							stroke-linejoin="round"
+							stroke-width="2"
+							d="M6 18L18 6M6 6l12 12"
+						/>
 					</svg>
 				</button>
 			</div>
@@ -423,16 +470,31 @@
 {/if}
 
 {#if showTimeline && selectedAssembly}
-	<div class="fixed inset-0 bg-depth-900/90 backdrop-blur-sm z-40 flex items-center justify-center p-4">
-		<div class="bg-depth-800 border border-silver-400/20 rounded-2xl max-w-3xl w-full max-h-[85vh] overflow-hidden flex flex-col animate-rise">
+	<div
+		class="fixed inset-0 bg-depth-900/90 backdrop-blur-sm z-40 flex items-center justify-center p-4"
+	>
+		<div
+			class="bg-depth-800 border border-silver-400/20 rounded-2xl max-w-3xl w-full max-h-[85vh] overflow-hidden flex flex-col animate-rise"
+		>
 			<div class="p-4 border-b border-silver-400/10 flex items-center justify-between">
 				<h2 class="font-serif text-xl text-silver-100">{selectedAssembly.title}</h2>
 				<button
 					onclick={closeAllPanels}
 					class="text-silver-400 hover:text-silver-200 transition-colors"
 				>
-					<svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+					<svg
+						xmlns="http://www.w3.org/2000/svg"
+						class="h-6 w-6"
+						fill="none"
+						viewBox="0 0 24 24"
+						stroke="currentColor"
+					>
+						<path
+							stroke-linecap="round"
+							stroke-linejoin="round"
+							stroke-width="2"
+							d="M6 18L18 6M6 6l12 12"
+						/>
 					</svg>
 				</button>
 			</div>
@@ -451,6 +513,6 @@
 {#if comparisonIterations}
 	<IterationComparison
 		iterations={comparisonIterations}
-		onClose={() => comparisonIterations = null}
+		onClose={() => (comparisonIterations = null)}
 	/>
 {/if}

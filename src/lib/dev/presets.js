@@ -61,7 +61,8 @@ export const PRESETS = {
 		messages: [
 			{
 				role: 'assistant',
-				content: 'Welcome. This is a space for exploration, where meaning can surface at its own pace.'
+				content:
+					'Welcome. This is a space for exploration, where meaning can surface at its own pace.'
 			},
 			{
 				role: 'user',
@@ -69,7 +70,8 @@ export const PRESETS = {
 			},
 			{
 				role: 'assistant',
-				content: 'Change carries weight. What does this anxiety feel like in your body when you notice it?'
+				content:
+					'Change carries weight. What does this anxiety feel like in your body when you notice it?'
 			}
 		]
 	},
@@ -153,11 +155,13 @@ export const PRESETS = {
 		messages: [
 			{
 				role: 'assistant',
-				content: 'Welcome. This is a space for exploration, where meaning can surface at its own pace. What brings you here today?'
+				content:
+					'Welcome. This is a space for exploration, where meaning can surface at its own pace. What brings you here today?'
 			},
 			{
 				role: 'user',
-				content: 'I have been feeling overwhelmed lately. Everyone expects me to be strong all the time.'
+				content:
+					'I have been feeling overwhelmed lately. Everyone expects me to be strong all the time.'
 			},
 			{
 				role: 'assistant',
@@ -165,7 +169,8 @@ export const PRESETS = {
 			},
 			{
 				role: 'user',
-				content: 'Like I am always performing. There is this space I go to in my mind where I can just be myself.'
+				content:
+					'Like I am always performing. There is this space I go to in my mind where I can just be myself.'
 			},
 			{
 				role: 'assistant',
@@ -173,7 +178,8 @@ export const PRESETS = {
 			},
 			{
 				role: 'user',
-				content: 'Honestly, I think my real feelings grow there. The messy ones I cannot show anyone.'
+				content:
+					'Honestly, I think my real feelings grow there. The messy ones I cannot show anyone.'
 			}
 		]
 	},
@@ -189,14 +195,78 @@ export const PRESETS = {
 		name: 'Many Cards',
 		description: 'Stress test with 8 cards',
 		cards: [
-			{ name: null, essence: null, hint: 'Loss lurking below', type: 'theme', formationState: 'submerged', depth: 0.2, sourceExcerpts: [] },
-			{ name: null, essence: null, hint: 'Old anger surfacing', type: 'tension', formationState: 'submerged', depth: 0.4, sourceExcerpts: [] },
-			{ name: null, essence: null, hint: 'A younger self watching', type: 'figure', formationState: 'rising', depth: 0.5, sourceExcerpts: [] },
-			{ name: null, essence: null, hint: 'The house you grew up in', type: 'place', formationState: 'rising', depth: 0.6, sourceExcerpts: [] },
-			{ name: 'The Mask', essence: 'What we show the world to stay safe', hint: 'False faces', type: 'object', formationState: 'surfaced', depth: 1.0, sourceExcerpts: [] },
-			{ name: 'Longing', essence: 'The ache for what we cannot name', hint: 'Unnamed desire', type: 'theme', formationState: 'surfaced', depth: 1.0, sourceExcerpts: [] },
-			{ name: 'The Guide', essence: 'Inner wisdom that knows the way', hint: 'A knowing presence', type: 'figure', formationState: 'surfaced', depth: 1.0, sourceExcerpts: [] },
-			{ name: 'The Crossroads', essence: 'Where paths diverge and choices must be made', hint: 'Forking paths', type: 'place', formationState: 'surfaced', depth: 1.0, sourceExcerpts: [] }
+			{
+				name: null,
+				essence: null,
+				hint: 'Loss lurking below',
+				type: 'theme',
+				formationState: 'submerged',
+				depth: 0.2,
+				sourceExcerpts: []
+			},
+			{
+				name: null,
+				essence: null,
+				hint: 'Old anger surfacing',
+				type: 'tension',
+				formationState: 'submerged',
+				depth: 0.4,
+				sourceExcerpts: []
+			},
+			{
+				name: null,
+				essence: null,
+				hint: 'A younger self watching',
+				type: 'figure',
+				formationState: 'rising',
+				depth: 0.5,
+				sourceExcerpts: []
+			},
+			{
+				name: null,
+				essence: null,
+				hint: 'The house you grew up in',
+				type: 'place',
+				formationState: 'rising',
+				depth: 0.6,
+				sourceExcerpts: []
+			},
+			{
+				name: 'The Mask',
+				essence: 'What we show the world to stay safe',
+				hint: 'False faces',
+				type: 'object',
+				formationState: 'surfaced',
+				depth: 1.0,
+				sourceExcerpts: []
+			},
+			{
+				name: 'Longing',
+				essence: 'The ache for what we cannot name',
+				hint: 'Unnamed desire',
+				type: 'theme',
+				formationState: 'surfaced',
+				depth: 1.0,
+				sourceExcerpts: []
+			},
+			{
+				name: 'The Guide',
+				essence: 'Inner wisdom that knows the way',
+				hint: 'A knowing presence',
+				type: 'figure',
+				formationState: 'surfaced',
+				depth: 1.0,
+				sourceExcerpts: []
+			},
+			{
+				name: 'The Crossroads',
+				essence: 'Where paths diverge and choices must be made',
+				hint: 'Forking paths',
+				type: 'place',
+				formationState: 'surfaced',
+				depth: 1.0,
+				sourceExcerpts: []
+			}
 		],
 		messages: []
 	}

@@ -1,0 +1,41 @@
+# Replay fixture (aoi-repo-polish-v0 leg 2, sec 5.4) - Kyma lore-book pattern:
+# canned OpenAI-compatible lane responses replay the /api/chat prompt assembly
+# and the tool-call -> cardEvents mapping, with zero network.
+# Driven by src/lib/__tests__/replay.test.js.
+name: detect-forming-card
+lane: chat
+request:
+  messages:
+    - role: user
+      content: Lately I keep dreaming about a door I can't open. It's not scary, it's more like... waiting.
+  cardState: []
+laneResponses:
+  # attempt 1: the lane signals the forming card via a tool call, no text
+  - choices:
+      - message:
+          content: ''
+          tool_calls:
+            - id: call_detect_1
+              type: function
+              function:
+                name: detect_forming_card
+                arguments: '{"type":"theme","hint":"a closed door that waits","depth":0.3,"excerpt":"it''s more like... waiting"}'
+  # attempt 2 (continuation): the lane speaks to the user
+  - choices:
+      - message:
+          content: A door that waits - what do you think is behind it?
+expected:
+  systemPromptContains:
+    - You are a gentle guide
+    - Card Formation Guidelines
+    - use detect_forming_card
+  toolDefs: [detect_forming_card, deepen_card, propose_card_naming]
+  toolCalls:
+    - name: detect_forming_card
+      argumentsSubset:
+        type: theme
+        hint: a closed door that waits
+        depth: 0.3
+        excerpt: "it's more like... waiting"
+  laneCalls: 2
+  finalContent: A door that waits - what do you think is behind it?

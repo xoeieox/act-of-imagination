@@ -33,7 +33,9 @@
 </script>
 
 <div
-	class="card-container p-4 min-h-[100px] {card.formationState === 'surfaced' ? 'animate-rise cursor-pointer hover:border-silver-400/40' : ''}"
+	class="card-container p-4 min-h-[100px] {card.formationState === 'surfaced'
+		? 'animate-rise cursor-pointer hover:border-silver-400/40'
+		: ''}"
 	style="opacity: {style.opacity}"
 	onclick={toggleExpand}
 	onkeydown={(e) => e.key === 'Enter' && toggleExpand()}
@@ -64,11 +66,17 @@
 				{#if card.sourceExcerpts?.length > 0}
 					<svg
 						xmlns="http://www.w3.org/2000/svg"
-						class="h-4 w-4 text-silver-400/40 flex-shrink-0 transition-transform duration-200 {isExpanded ? 'rotate-180' : ''}"
+						class="h-4 w-4 text-silver-400/40 flex-shrink-0 transition-transform duration-200 {isExpanded
+							? 'rotate-180'
+							: ''}"
 						viewBox="0 0 20 20"
 						fill="currentColor"
 					>
-						<path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
+						<path
+							fill-rule="evenodd"
+							d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
+							clip-rule="evenodd"
+						/>
 					</svg>
 				{/if}
 			</div>
@@ -111,7 +119,9 @@
 						<div class="space-y-2">
 							<span class="text-silver-400/60 text-xs">Sources:</span>
 							{#each card.sourceExcerpts as excerpt}
-								<blockquote class="pl-3 border-l-2 border-silver-400/20 text-silver-400 text-xs italic">
+								<blockquote
+									class="pl-3 border-l-2 border-silver-400/20 text-silver-400 text-xs italic"
+								>
 									"{excerpt}"
 								</blockquote>
 							{/each}

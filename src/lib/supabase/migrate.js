@@ -72,7 +72,9 @@ export function getMigrationSummary() {
 export async function migrateToSupabase() {
 	if (!browser || !isSupabaseConfigured()) return { success: false, error: 'Not available' };
 
-	const { data: { user } } = await supabase.auth.getUser();
+	const {
+		data: { user }
+	} = await supabase.auth.getUser();
 	if (!user) return { success: false, error: 'Not authenticated' };
 
 	try {
@@ -93,45 +95,39 @@ export async function migrateToSupabase() {
 				const sessionId = crypto.randomUUID();
 
 				// Create session
-				await supabase
-					.from('sessions')
-					.insert({
-						id: sessionId,
-						user_id: user.id,
-						title: `Migrated Session - ${new Date().toLocaleDateString()}`
-					});
+				await supabase.from('sessions').insert({
+					id: sessionId,
+					user_id: user.id,
+					title: `Migrated Session - ${new Date().toLocaleDateString()}`
+				});
 
 				// Migrate messages
 				for (const msg of sessionData.messages) {
-					await supabase
-						.from('messages')
-						.insert({
-							id: msg.id,
-							session_id: sessionId,
-							role: msg.role,
-							content: msg.content
-						});
+					await supabase.from('messages').insert({
+						id: msg.id,
+						session_id: sessionId,
+						role: msg.role,
+						content: msg.content
+					});
 				}
 
 				// Migrate cards from session if not already migrated
 				if (sessionData.cards?.length > 0) {
 					for (const card of sessionData.cards) {
 						try {
-							await supabase
-								.from('cards')
-								.upsert({
-									id: card.id,
-									user_id: user.id,
-									session_id: sessionId,
-									name: card.name,
-									essence: card.essence,
-									hint: card.hint,
-									type: card.type,
-									formation_state: card.formationState,
-									depth: card.depth,
-									source_excerpts: card.sourceExcerpts || [],
-									surfaced_at: card.surfacedAt
-								});
+							await supabase.from('cards').upsert({
+								id: card.id,
+								user_id: user.id,
+								session_id: sessionId,
+								name: card.name,
+								essence: card.essence,
+								hint: card.hint,
+								type: card.type,
+								formation_state: card.formationState,
+								depth: card.depth,
+								source_excerpts: card.sourceExcerpts || [],
+								surfaced_at: card.surfacedAt
+							});
 						} catch (err) {
 							console.warn('Card already exists or error:', err);
 						}
@@ -148,14 +144,12 @@ export async function migrateToSupabase() {
 			for (const assembly of assemblies) {
 				try {
 					// Create assembly
-					await supabase
-						.from('assemblies')
-						.insert({
-							id: assembly.id,
-							user_id: user.id,
-							title: assembly.title,
-							synopsis: assembly.synopsis
-						});
+					await supabase.from('assemblies').insert({
+						id: assembly.id,
+						user_id: user.id,
+						title: assembly.title,
+						synopsis: assembly.synopsis
+					});
 
 					// Create assembly_cards if we have card references
 					if (assembly.cards?.length > 0) {
@@ -168,9 +162,7 @@ export async function migrateToSupabase() {
 						// Note: This may fail if cards don't exist in the cards table
 						// We'll try but ignore errors
 						try {
-							await supabase
-								.from('assembly_cards')
-								.insert(assemblyCards);
+							await supabase.from('assembly_cards').insert(assemblyCards);
 						} catch (cardErr) {
 							console.warn('Could not link assembly cards:', cardErr);
 						}
@@ -179,17 +171,15 @@ export async function migrateToSupabase() {
 					// Create iterations
 					if (assembly.iterations?.length > 0) {
 						for (const iteration of assembly.iterations) {
-							await supabase
-								.from('assembly_iterations')
-								.insert({
-									id: iteration.id,
-									assembly_id: assembly.id,
-									iteration_number: iteration.iterationNumber,
-									narrative: iteration.narrative,
-									card_snapshot: iteration.cardSnapshot,
-									context_snapshot: iteration.contextSnapshot,
-									is_starred: iteration.isStarred || false
-								});
+							await supabase.from('assembly_iterations').insert({
+								id: iteration.id,
+								assembly_id: assembly.id,
+								iteration_number: iteration.iterationNumber,
+								narrative: iteration.narrative,
+								card_snapshot: iteration.cardSnapshot,
+								context_snapshot: iteration.contextSnapshot,
+								is_starred: iteration.isStarred || false
+							});
 						}
 					}
 				} catch (err) {
