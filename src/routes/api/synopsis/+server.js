@@ -1,10 +1,5 @@
-import Anthropic from '@anthropic-ai/sdk';
 import { json } from '@sveltejs/kit';
-import { ANTHROPIC_API_KEY } from '$env/static/private';
-
-const anthropic = new Anthropic({
-	apiKey: ANTHROPIC_API_KEY
-});
+import { chat as laneChat, laneErrorShape } from '$lib/server/lane.js';
 
 export async function POST({ request }) {
 	try {
@@ -39,18 +34,25 @@ The generated narrative was:
 
 Write a 1-2 sentence synopsis that captures what this assembly explores.`;
 
-		const response = await anthropic.messages.create({
-			model: 'claude-sonnet-4-20250514',
-			max_tokens: 150,
-			system: systemPrompt,
-			messages: [{ role: 'user', content: userPrompt }]
+		const result = await laneChat('synopsis', {
+			messages: [
+				{ role: 'system', content: systemPrompt },
+				{ role: 'user', content: userPrompt }
+			],
+			maxTokens: 150
 		});
 
-		const synopsis = response.content[0].text.trim();
+		const synopsis = result.content.trim();
 
 		return json({ synopsis });
 
 	} catch (error) {
+		// Shared lane shape with the other two routes: 501 unconfigured (I-2) / 502 upstream.
+		const laneShape = laneErrorShape(error);
+		if (laneShape) {
+			console.error('Synopsis API lane error:', error);
+			return json(laneShape.body, { status: laneShape.status });
+		}
 		console.error('Synopsis API error:', error);
 		return json(
 			{ error: 'Failed to generate synopsis', details: error.message },

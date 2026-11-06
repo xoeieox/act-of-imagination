@@ -1,11 +1,6 @@
-import Anthropic from '@anthropic-ai/sdk';
 import { json } from '@sveltejs/kit';
-import { ANTHROPIC_API_KEY } from '$env/static/private';
+import { chat as laneChat, LaneUpstreamError, laneErrorShape } from '$lib/server/lane.js';
 import { SYSTEM_CONTEXTS, getSystemContext } from '$lib/data/contexts.js';
-
-const anthropic = new Anthropic({
-	apiKey: ANTHROPIC_API_KEY
-});
 
 // Legacy context prompts for backward compatibility
 const LEGACY_CONTEXT_PROMPTS = {
@@ -63,18 +58,30 @@ Context: ${contextPrompt}
 
 Generate a scene or interaction that emerges from these elements meeting.`;
 
-		const response = await anthropic.messages.create({
-			model: 'claude-sonnet-4-20250514',
-			max_tokens: 1024,
-			system: systemPrompt,
-			messages: [{ role: 'user', content: userPrompt }]
+		const result = await laneChat('arrange', {
+			messages: [
+				{ role: 'system', content: systemPrompt },
+				{ role: 'user', content: userPrompt }
+			],
+			maxTokens: 1024
 		});
 
-		const narrative = response.content[0].text;
+		if (!result.content) {
+			throw new LaneUpstreamError('LLM lane "arrange": endpoint returned no narrative content');
+		}
+		const narrative = result.content;
 
 		return json({ narrative });
 
 	} catch (error) {
+		// Shared lane shape with the other two routes: 501 unconfigured (I-2)
+		// vs 502 upstream (the thrown "no narrative content" LaneUpstreamError
+		// surfaces here too, at a gateway-accurate status).
+		const laneShape = laneErrorShape(error);
+		if (laneShape) {
+			console.error('Arrange API lane error:', error);
+			return json(laneShape.body, { status: laneShape.status });
+		}
 		console.error('Arrange API error:', error);
 		return json(
 			{ error: 'Failed to generate interaction', details: error.message },

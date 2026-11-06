@@ -126,6 +126,13 @@
 
 			if (!response.ok) {
 				const errorData = await response.json().catch(() => ({}));
+				if (response.status === 501 && errorData.error === 'llm_lane_unconfigured') {
+					// Fail-closed lane state (I-2): carry the env-var hint through
+					// instead of swallowing it behind the generic connect error.
+					const laneError = new Error(errorData.hint || 'No model lane is configured yet.');
+					laneError.laneUnconfigured = true;
+					throw laneError;
+				}
 				throw new Error(errorData.details || 'Unable to connect. Please try again.');
 			}
 
@@ -146,7 +153,9 @@
 
 			// User-friendly error messages
 			let friendlyMessage = 'Something went wrong. Your message has been saved.';
-			if (error.message.includes('fetch')) {
+			if (error.laneUnconfigured) {
+				friendlyMessage = error.message;
+			} else if (error.message.includes('fetch')) {
 				friendlyMessage = 'Connection lost. Your message is safe - tap retry when ready.';
 			} else if (error.message.includes('API') || error.message.includes('key')) {
 				friendlyMessage = 'Service temporarily unavailable. Your message is saved.';

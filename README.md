@@ -2,6 +2,18 @@
 
 A web application for personal exploration through AI-assisted conversation. Cards rise from the unconscious like shapes through murky water.
 
+## Run entirely on your own machine
+
+Act of Imagination is local-first by design: your conversation material is personal and
+stays on your machine. The app ships **no cloud keys, no baked-in endpoints, and no default
+provider** - the model it talks to is whatever OpenAI-compatible endpoint you point it at via
+the `AOI_LLM_*` environment lanes (see `.env.example`). Any local model server that speaks
+`/chat/completions` works - Ollama, llama.cpp's server, vLLM, SGLang, or a gateway you
+configure yourself. If no lane is configured, the app **fails closed**: the API routes answer
+`501 llm_lane_unconfigured` and nothing leaves your machine. This is the positioning from the
+local-AI community's core ask - a genuinely local introspection tool, not a thin client for
+someone else's cloud.
+
 ## Quick Start
 
 1. **Install dependencies**
@@ -12,12 +24,15 @@ A web application for personal exploration through AI-assisted conversation. Car
 2. **Set up environment**
    ```bash
    cp .env.example .env
-   # Edit .env and add your Anthropic API key
-   # Optionally add Supabase credentials for cloud persistence
+   # Edit .env and configure at least one LLM lane (shared or per-route).
+   # Optionally add Supabase credentials for cloud persistence.
    ```
 
-   Required:
-   - `ANTHROPIC_API_KEY` - Your Anthropic API key
+   Required (for the conversation, arrangement, and synopsis features to run):
+   - `AOI_LLM_BASE_URL` + `AOI_LLM_MODEL` - an OpenAI-compatible
+     `/chat/completions` endpoint (e.g. a local model server:
+     `AOI_LLM_BASE_URL=http://127.0.0.1:11434/v1`), or per-lane overrides
+     `AOI_LLM_<CHAT|ARRANGE|SYNOPSIS>_{PROVIDER,BASE_URL,MODEL,API_KEY,MAX_TOKENS}`
 
    Optional (for cloud persistence):
    - `VITE_SUPABASE_URL` - Your Supabase project URL
@@ -134,7 +149,7 @@ supabase/
 
 - **SvelteKit 5** - Framework with Svelte 5 runes
 - **Tailwind CSS** - Styling (custom moonlight-on-water palette)
-- **Claude API** - AI conversation with tool use for card detection
+- **Env-configured LLM lane** - OpenAI-compatible endpoint you run yourself; tool use for card detection
 - **Supabase** - Optional auth and database persistence
 - **Vercel** - Deployment (adapter configured)
 
@@ -223,7 +238,7 @@ This project uses custom ports to avoid conflicts with other local Supabase proj
 1. Push to GitHub
 2. Import to Vercel
 3. Add environment variables:
-   - `ANTHROPIC_API_KEY` (required)
+   - `AOI_LLM_BASE_URL` + `AOI_LLM_MODEL` (required - any OpenAI-compatible endpoint, see `.env.example`)
    - `VITE_SUPABASE_URL` (optional)
    - `VITE_SUPABASE_ANON_KEY` (optional)
 4. Deploy
@@ -240,7 +255,7 @@ This project uses custom ports to avoid conflicts with other local Supabase proj
 
 ## AI System Design
 
-The conversation API uses Claude's tool use feature with three tools:
+The conversation API uses the configured lane model's tool-calling support with three tools:
 - `detect_forming_card` - When AI notices a theme/tension/figure forming
 - `deepen_card` - When something previously detected gains more substance
 - `propose_card_naming` - When a card is ready to be named
