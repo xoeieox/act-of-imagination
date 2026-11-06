@@ -1,10 +1,5 @@
-import Anthropic from '@anthropic-ai/sdk';
 import { json } from '@sveltejs/kit';
-import { ANTHROPIC_API_KEY } from '$env/static/private';
-
-const anthropic = new Anthropic({
-	apiKey: ANTHROPIC_API_KEY
-});
+import { chat as laneChat, LaneUnconfiguredError, laneConfigHint } from '$lib/server/lane.js';
 
 // Tool definitions for card formation
 const TOOLS = [
@@ -118,7 +113,7 @@ export async function POST({ request }) {
 	try {
 		const { messages, cards } = await request.json();
 
-		// Format messages for Claude API, filtering out empty content
+		// Format messages for the lane, filtering out empty content
 		const formattedMessages = messages
 			.filter(m => m.content && m.content.trim() !== '')
 			.map(m => ({
@@ -147,50 +142,49 @@ export async function POST({ request }) {
 			}
 		}
 
-		const response = await anthropic.messages.create({
-			model: 'claude-sonnet-4-20250514',
-			max_tokens: 1024,
-			system: SYSTEM_PROMPT + systemAddition,
+		const baseMessages = [
+			{ role: 'system', content: SYSTEM_PROMPT + systemAddition },
+			...formattedMessages
+		];
+
+		const result = await laneChat('chat', {
+			messages: baseMessages,
 			tools: TOOLS,
-			messages: formattedMessages
+			maxTokens: 1024
 		});
 
-		// Process the response - extract text and tool uses
-		let textContent = '';
+		// Process the response - extract text and tool calls
+		const textContent = result.content;
 		const cardEvents = [];
 
-		for (const block of response.content) {
-			if (block.type === 'text') {
-				textContent = block.text;
-			} else if (block.type === 'tool_use') {
-				// Process card formation tool calls
-				const toolName = block.name;
-				const input = block.input;
+		for (const call of result.toolCalls) {
+			// Process card formation tool calls
+			const toolName = call.name;
+			const input = call.arguments;
 
-				if (toolName === 'detect_forming_card') {
-					cardEvents.push({
-						event: 'detected',
-						type: input.type,
-						hint: input.hint,
-						depth: input.depth,
-						excerpt: input.excerpt
-					});
-				} else if (toolName === 'deepen_card') {
-					cardEvents.push({
-						event: 'deepened',
-						hint: input.card_hint,
-						depth: input.new_depth,
-						excerpt: input.additional_excerpt
-					});
-				} else if (toolName === 'propose_card_naming') {
-					cardEvents.push({
-						event: 'proposed',
-						hint: input.card_hint,
-						name: input.proposed_name,
-						essence: input.essence,
-						type: input.type
-					});
-				}
+			if (toolName === 'detect_forming_card') {
+				cardEvents.push({
+					event: 'detected',
+					type: input.type,
+					hint: input.hint,
+					depth: input.depth,
+					excerpt: input.excerpt
+				});
+			} else if (toolName === 'deepen_card') {
+				cardEvents.push({
+					event: 'deepened',
+					hint: input.card_hint,
+					depth: input.new_depth,
+					excerpt: input.additional_excerpt
+				});
+			} else if (toolName === 'propose_card_naming') {
+				cardEvents.push({
+					event: 'proposed',
+					hint: input.card_hint,
+					name: input.proposed_name,
+					essence: input.essence,
+					type: input.type
+				});
 			}
 		}
 
@@ -198,58 +192,62 @@ export async function POST({ request }) {
 		// to get the actual response text. Keep trying until we get text (max 3 attempts).
 		let attempts = 0;
 		const maxAttempts = 3;
-		let currentResponse = response;
+		let currentResult = result;
+		let finalContent = textContent;
 
-		while (!textContent && cardEvents.length > 0 && attempts < maxAttempts) {
+		while (!finalContent && cardEvents.length > 0 && attempts < maxAttempts) {
 			attempts++;
 
-			// Build tool results to send back
-			const toolResults = currentResponse.content
-				.filter(b => b.type === 'tool_use')
-				.map(b => ({
-					type: 'tool_result',
-					tool_use_id: b.id,
+			// If no tool calls to respond to, break
+			if (currentResult.toolCalls.length === 0) break;
+
+			// Echo the assistant turn and send tool results back to the lane
+			const turnMessages = [
+				...baseMessages,
+				{
+					role: 'assistant',
+					content: currentResult.content || null,
+					tool_calls: currentResult.toolCalls.map(c => c.raw)
+				},
+				...currentResult.toolCalls.map(c => ({
+					role: 'tool',
+					tool_call_id: c.id,
 					content: 'Card formation noted. Please provide a conversational response to the user.'
-				}));
+				}))
+			];
 
-			// If no tool uses to respond to, break
-			if (toolResults.length === 0) break;
-
-			const continuedResponse = await anthropic.messages.create({
-				model: 'claude-sonnet-4-20250514',
-				max_tokens: 1024,
-				system: SYSTEM_PROMPT + systemAddition,
+			const continuedResult = await laneChat('chat', {
+				messages: turnMessages,
 				tools: TOOLS,
-				messages: [
-					...formattedMessages,
-					{ role: 'assistant', content: currentResponse.content },
-					{ role: 'user', content: toolResults }
-				]
+				maxTokens: 1024
 			});
 
 			// Extract text from continued response
-			for (const block of continuedResponse.content) {
-				if (block.type === 'text') {
-					textContent = block.text;
-					break;
-				}
+			if (continuedResult.content) {
+				finalContent = continuedResult.content;
 			}
 
 			// Update for next iteration if needed
-			currentResponse = continuedResponse;
+			currentResult = continuedResult;
 		}
 
 		// Final fallback: if we still have no text but had card events, provide a minimal acknowledgment
-		if (!textContent && cardEvents.length > 0) {
-			textContent = "I'm here with you. Something is stirring beneath the surface...";
+		if (!finalContent && cardEvents.length > 0) {
+			finalContent = "I'm here with you. Something is stirring beneath the surface...";
 		}
 
 		return json({
-			content: textContent,
+			content: finalContent,
 			cardEvents
 		});
 
 	} catch (error) {
+		if (error instanceof LaneUnconfiguredError) {
+			return json(
+				{ error: 'llm_lane_unconfigured', lane: error.lane, hint: laneConfigHint(error.lane) },
+				{ status: 501 }
+			);
+		}
 		console.error('Chat API error:', error);
 		return json(
 			{ error: 'Failed to process request', details: error.message },
