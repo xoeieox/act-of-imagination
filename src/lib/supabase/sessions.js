@@ -1,6 +1,7 @@
 import { writable, derived } from 'svelte/store';
 import { browser } from '$app/environment';
 import { supabase, isSupabaseConfigured } from './client.js';
+import { newId } from '$lib/uuid.js';
 
 /**
  * Sessions service - manages conversation sessions and messages
@@ -79,7 +80,7 @@ function createSessionsStore() {
 		// Create a new session
 		async createSession(title = null) {
 			const session = {
-				id: crypto.randomUUID(),
+				id: newId(),
 				title: title || `Session ${new Date().toLocaleDateString()}`,
 				createdAt: new Date().toISOString(),
 				updatedAt: new Date().toISOString()

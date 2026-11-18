@@ -1,6 +1,7 @@
 import { writable, derived } from 'svelte/store';
 import { browser } from '$app/environment';
 import { supabase, isSupabaseConfigured } from './client.js';
+import { newId } from '$lib/uuid.js';
 
 /**
  * Cards service - manages personal cards
@@ -85,7 +86,7 @@ function createCardsStore() {
 		// Add a new card
 		async addCard(card) {
 			const newCard = {
-				id: card.id || crypto.randomUUID(),
+				id: card.id || newId(),
 				sessionId: card.sessionId || null,
 				name: card.name || null,
 				essence: card.essence || null,

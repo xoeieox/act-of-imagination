@@ -5,6 +5,10 @@
 	import { assemblies } from '$lib/supabase/assemblies.js';
 	import { isAuthenticated, signOut } from '$lib/supabase/auth.js';
 	import { isSupabaseConfigured } from '$lib/supabase/client.js';
+	// aoi-motion 2026-11-17: menu enters ~320ms, exits ~200ms (slide back a
+	// touch faster than it came out, per Erah).
+	import { fade, fly } from 'svelte/transition';
+	import { cubicOut, cubicIn } from 'svelte/easing';
 
 	let cardCount = $derived($surfacedCards.length);
 	let assemblyCount = $derived($assemblies.length);
@@ -56,11 +60,15 @@
 		onclick={() => navigation.closeMenu()}
 		role="button"
 		tabindex="-1"
+		in:fade={{ duration: 400 }}
+		out:fade={{ duration: 260 }}
 	></div>
 
 	<!-- Menu panel -->
 	<div
-		class="fixed left-0 top-0 h-full w-72 bg-depth-800 border-r border-silver-400/20 z-50 flex flex-col animate-slide-in"
+		class="fixed left-0 top-0 h-full w-72 bg-depth-800 border-r border-silver-400/20 z-50 flex flex-col"
+		in:fly={{ x: -28, duration: 480, easing: cubicOut }}
+		out:fly={{ x: -28, duration: 300, easing: cubicIn }}
 	>
 		<!-- Header -->
 		<div class="p-4 border-b border-silver-400/10 flex items-center justify-between">
@@ -263,16 +271,6 @@
 {/if}
 
 <style>
-	@keyframes slide-in {
-		from {
-			transform: translateX(-100%);
-		}
-		to {
-			transform: translateX(0);
-		}
-	}
-
-	.animate-slide-in {
-		animation: slide-in 0.2s ease-out;
-	}
+	/* aoi-motion 2026-11-17: slide-in keyframes retired in favour of
+	   svelte in:/out:fly transitions (symmetric enter/exit). */
 </style>

@@ -1,6 +1,7 @@
 import { writable, derived } from 'svelte/store';
 import { browser } from '$app/environment';
 import { supabase, isSupabaseConfigured } from '$lib/supabase/client.js';
+import { newId } from '$lib/uuid.js';
 
 /**
  * Session store - manages conversation state and cards
@@ -14,7 +15,7 @@ const CARDS_STORAGE_KEY = 'act-of-imagination-cards';
 // Default session state
 function createDefaultSession() {
 	return {
-		id: crypto.randomUUID(),
+		id: newId(),
 		messages: [],
 		cards: [],
 		phase: 'CONVERSATION',
@@ -31,6 +32,42 @@ let saveTimeout = null;
 let lastSavedMessageCount = 0;
 let lastSavedCardCount = 0;
 
+// Restore hardening (aoi-fix 2026-11-17): localStorage outlives app versions.
+// A message or card with a missing/renamed field must degrade to a default
+// or a sanitized entry - never crash the client render (blank after flash).
+function sanitizeMessage(raw) {
+	if (!raw || typeof raw !== 'object') return null;
+	if (raw.role !== 'user' && raw.role !== 'assistant') return null;
+	if (typeof raw.content !== 'string') return null;
+	return {
+		id: typeof raw.id === 'string' ? raw.id : newId(),
+		role: raw.role,
+		content: raw.content,
+		timestamp: Number.isFinite(raw.timestamp) ? raw.timestamp : Date.now()
+	};
+}
+
+function sanitizeCard(raw) {
+	if (!raw || typeof raw !== 'object' || typeof raw.id !== 'string') return null;
+	const depth = Number(raw.depth);
+	return {
+		id: raw.id,
+		name: typeof raw.name === 'string' ? raw.name : null,
+		essence: typeof raw.essence === 'string' ? raw.essence : null,
+		hint: typeof raw.hint === 'string' ? raw.hint : null,
+		type: typeof raw.type === 'string' ? raw.type : 'theme',
+		formationState: ['submerged', 'rising', 'surfaced'].includes(raw.formationState)
+			? raw.formationState
+			: 'submerged',
+		depth: Number.isFinite(depth) ? Math.min(Math.max(depth, 0), 1) : 0,
+		createdAt: Number.isFinite(raw.createdAt) ? raw.createdAt : Date.now(),
+		surfacedAt: Number.isFinite(raw.surfacedAt) ? raw.surfacedAt : null,
+		sourceExcerpts: Array.isArray(raw.sourceExcerpts)
+			? raw.sourceExcerpts.filter((x) => typeof x === 'string')
+			: []
+	};
+}
+
 // Load session from localStorage
 function loadSession() {
 	if (!browser) return createDefaultSession();
@@ -39,14 +76,22 @@ function loadSession() {
 		const stored = localStorage.getItem(STORAGE_KEY);
 		if (stored) {
 			const parsed = JSON.parse(stored);
+			const messages = Array.isArray(parsed.messages)
+				? parsed.messages.map(sanitizeMessage).filter(Boolean)
+				: [];
+			const cards = Array.isArray(parsed.cards)
+				? parsed.cards.map(sanitizeCard).filter(Boolean)
+				: [];
 
 			// Initialize save tracking to current counts (so we don't re-save on first render)
-			lastSavedMessageCount = parsed.messages?.length || 0;
-			lastSavedCardCount = parsed.cards?.length || 0;
+			lastSavedMessageCount = messages.length;
+			lastSavedCardCount = cards.length;
 
 			// Reset transient state
 			return {
 				...parsed,
+				messages,
+				cards,
 				isLoading: false,
 				error: null,
 				pendingProposal: null,
@@ -178,7 +223,7 @@ function createSessionStore() {
 				messages: [
 					...state.messages,
 					{
-						id: crypto.randomUUID(),
+						id: newId(),
 						role: 'user',
 						content,
 						timestamp: Date.now()
@@ -195,7 +240,7 @@ function createSessionStore() {
 				messages: [
 					...state.messages,
 					{
-						id: crypto.randomUUID(),
+						id: newId(),
 						role: 'assistant',
 						content,
 						timestamp: Date.now()
@@ -226,7 +271,7 @@ function createSessionStore() {
 					if (event.event === 'detected') {
 						// New card detected - create submerged card
 						newCards.push({
-							id: crypto.randomUUID(),
+							id: newId(),
 							name: null,
 							essence: null,
 							hint: event.hint,
@@ -305,7 +350,7 @@ function createSessionStore() {
 				} else {
 					// Create new surfaced card
 					newCards.push({
-						id: crypto.randomUUID(),
+						id: newId(),
 						name: finalName,
 						essence: finalEssence,
 						hint: proposal.hint,
@@ -372,7 +417,7 @@ function createSessionStore() {
 				cards: [
 					...state.cards,
 					{
-						id: crypto.randomUUID(),
+						id: newId(),
 						createdAt: Date.now(),
 						surfacedAt: card.formationState === 'surfaced' ? Date.now() : null,
 						...card
@@ -435,13 +480,13 @@ function createSessionStore() {
 				...state,
 				cards: preset.cards.map((c) => ({
 					...c,
-					id: crypto.randomUUID(),
+					id: newId(),
 					createdAt: Date.now(),
 					surfacedAt: c.formationState === 'surfaced' ? Date.now() : null
 				})),
 				messages: preset.messages.map((m) => ({
 					...m,
-					id: crypto.randomUUID(),
+					id: newId(),
 					timestamp: Date.now()
 				})),
 				phase: 'CONVERSATION',

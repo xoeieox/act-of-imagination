@@ -150,14 +150,20 @@ export async function POST({ request }) {
 			...formattedMessages
 		];
 
+		// maxTokens is a default, not a cap: thinking lanes spend part of the
+		// budget on reasoning_content before emitting text or tool calls, so
+		// the budget must cover both (aoi-fix 2026-11-17; AOI_LLM_*_MAX_TOKENS
+		// still wins per the lane table).
 		const result = await laneChat('chat', {
 			messages: baseMessages,
 			tools: TOOLS,
-			maxTokens: 1024
+			maxTokens: 8192
 		});
 
-		// Process the response - extract text and tool calls
-		const textContent = result.content;
+		// Process the response - extract text and tool calls.
+		// Whitespace-only content counts as no content: thinking lanes can emit
+		// stray "\n\n" alongside tool calls and it must not pass as a reply.
+		const textContent = typeof result.content === 'string' ? result.content.trim() : '';
 		const cardEvents = [];
 
 		for (const call of result.toolCalls) {
@@ -222,12 +228,12 @@ export async function POST({ request }) {
 			const continuedResult = await laneChat('chat', {
 				messages: turnMessages,
 				tools: TOOLS,
-				maxTokens: 1024
+				maxTokens: 8192
 			});
 
-			// Extract text from continued response
-			if (continuedResult.content) {
-				finalContent = continuedResult.content;
+			// Extract text from continued response (whitespace-only does not count)
+			if (continuedResult.content && continuedResult.content.trim()) {
+				finalContent = continuedResult.content.trim();
 			}
 
 			// Update for next iteration if needed
@@ -237,6 +243,11 @@ export async function POST({ request }) {
 		// Final fallback: if we still have no text but had card events, provide a minimal acknowledgment
 		if (!finalContent && cardEvents.length > 0) {
 			finalContent = "I'm here with you. Something is stirring beneath the surface...";
+		}
+		// A fully-empty turn (no text, no tools) must not be silently dropped:
+		// the client discards empty content and the user sees nothing at all.
+		if (!finalContent) {
+			finalContent = "I'm here with you. Say a little more when you're ready.";
 		}
 
 		return json({

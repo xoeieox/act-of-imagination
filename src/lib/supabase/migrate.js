@@ -1,6 +1,7 @@
 import { browser } from '$app/environment';
 import { supabase, isSupabaseConfigured } from './client.js';
 import { syncCardsToSupabase } from './cards.js';
+import { newId } from '$lib/uuid.js';
 
 /**
  * Migration helper - migrates localStorage data to Supabase when user authenticates
@@ -92,7 +93,7 @@ export async function migrateToSupabase() {
 
 			// Create a session for the current conversation
 			if (sessionData.messages?.length > 0) {
-				const sessionId = crypto.randomUUID();
+				const sessionId = newId();
 
 				// Create session
 				await supabase.from('sessions').insert({

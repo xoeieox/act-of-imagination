@@ -31,7 +31,7 @@ export default {
 			animation: {
 				float: 'float 6s ease-in-out infinite',
 				shimmer: 'shimmer 3s ease-in-out infinite',
-				rise: 'rise 2s ease-out forwards'
+				rise: 'rise 1.5s ease-out forwards'
 			},
 			keyframes: {
 				float: {

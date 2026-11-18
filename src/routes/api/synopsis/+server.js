@@ -1,5 +1,5 @@
 import { json } from '@sveltejs/kit';
-import { chat as laneChat, laneErrorShape } from '$lib/server/lane.js';
+import { chat as laneChat, laneErrorShape, LaneUpstreamError } from '$lib/server/lane.js';
 
 export async function POST({ request }) {
 	try {
@@ -39,10 +39,17 @@ Write a 1-2 sentence synopsis that captures what this assembly explores.`;
 				{ role: 'system', content: systemPrompt },
 				{ role: 'user', content: userPrompt }
 			],
-			maxTokens: 150
+			// Budget must cover reasoning_content plus the synopsis itself on
+			// thinking lanes (aoi-fix 2026-11-17).
+			maxTokens: 2048
 		});
 
-		const synopsis = result.content.trim();
+		const synopsis = result.content ? result.content.trim() : '';
+		// An empty synopsis surfaces as the shared 502 shape; the client's
+		// fallback line then renders instead of a silent blank field.
+		if (!synopsis) {
+			throw new LaneUpstreamError('LLM lane "synopsis": endpoint returned no synopsis content');
+		}
 
 		return json({ synopsis });
 	} catch (error) {

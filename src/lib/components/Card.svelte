@@ -86,56 +86,59 @@
 				</p>
 			{/if}
 
-			<!-- Expanded content -->
-			{#if isExpanded}
-				<div class="mt-3 pt-3 border-t border-silver-400/10 space-y-3 animate-rise">
-					<!-- Type badge -->
-					{#if card.type}
-						<div class="flex items-center gap-2">
-							<span class="text-silver-400/60 text-xs">Type:</span>
-							<span class="px-2 py-0.5 bg-depth-700 text-silver-300 text-xs rounded capitalize">
-								{card.type}
-							</span>
-						</div>
-					{/if}
+			<!-- Expanded content (aoi-motion 2026-11-17: symmetric expand/collapse,
+			     grid-rows transition instead of mount/unmount so exit animates too) -->
+			<div class="card-expand" class:open={isExpanded}>
+				<div class="card-expand-inner">
+					<div class="mt-3 pt-3 border-t border-silver-400/10 space-y-3">
+						<!-- Type badge -->
+						{#if card.type}
+							<div class="flex items-center gap-2">
+								<span class="text-silver-400/60 text-xs">Type:</span>
+								<span class="px-2 py-0.5 bg-depth-700 text-silver-300 text-xs rounded capitalize">
+									{card.type}
+								</span>
+							</div>
+						{/if}
 
-					<!-- Depth explanation -->
-					{#if card.depth > 0}
-						<div class="flex items-center gap-2">
-							<span class="text-silver-400/60 text-xs">Depth:</span>
-							<div class="flex space-x-0.5">
-								{#each Array(Math.ceil(card.depth * 5)) as _, i}
-									<div class="w-1.5 h-1.5 rounded-full bg-silver-400/50"></div>
+						<!-- Depth explanation -->
+						{#if card.depth > 0}
+							<div class="flex items-center gap-2">
+								<span class="text-silver-400/60 text-xs">Depth:</span>
+								<div class="flex space-x-0.5">
+									{#each Array(Math.ceil(card.depth * 5)) as _, i}
+										<div class="w-1.5 h-1.5 rounded-full bg-silver-400/50"></div>
+									{/each}
+								</div>
+								<span class="text-silver-400/40 text-xs">
+									({Math.round(card.depth * 100)}% formed)
+								</span>
+							</div>
+						{/if}
+
+						<!-- Source excerpts -->
+						{#if card.sourceExcerpts?.length > 0}
+							<div class="space-y-2">
+								<span class="text-silver-400/60 text-xs">Sources:</span>
+								{#each card.sourceExcerpts as excerpt}
+									<blockquote
+										class="pl-3 border-l-2 border-silver-400/20 text-silver-400 text-xs italic"
+									>
+										"{excerpt}"
+									</blockquote>
 								{/each}
 							</div>
-							<span class="text-silver-400/40 text-xs">
-								({Math.round(card.depth * 100)}% formed)
-							</span>
-						</div>
-					{/if}
+						{/if}
 
-					<!-- Source excerpts -->
-					{#if card.sourceExcerpts?.length > 0}
-						<div class="space-y-2">
-							<span class="text-silver-400/60 text-xs">Sources:</span>
-							{#each card.sourceExcerpts as excerpt}
-								<blockquote
-									class="pl-3 border-l-2 border-silver-400/20 text-silver-400 text-xs italic"
-								>
-									"{excerpt}"
-								</blockquote>
-							{/each}
-						</div>
-					{/if}
-
-					<!-- Original hint if different -->
-					{#if card.hint && card.hint !== card.essence}
-						<div class="text-silver-400/40 text-xs">
-							<span class="text-silver-400/60">First glimpse:</span> "{card.hint}"
-						</div>
-					{/if}
+						<!-- Original hint if different -->
+						{#if card.hint && card.hint !== card.essence}
+							<div class="text-silver-400/40 text-xs">
+								<span class="text-silver-400/60">First glimpse:</span> "{card.hint}"
+							</div>
+						{/if}
+					</div>
 				</div>
-			{/if}
+			</div>
 		{:else if card.hint}
 			<!-- Hint text that "swims" under the water -->
 			<p class="text-silver-400/60 text-sm italic leading-relaxed swimming-text">

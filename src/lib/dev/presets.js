@@ -1,3 +1,4 @@
+import { newId } from '$lib/uuid.js';
 /**
  * Dev panel presets - test data for quickly populating the UI
  */
@@ -11,7 +12,7 @@ export const FORMATION_STATES = ['submerged', 'rising', 'surfaced'];
  */
 export function createCard(overrides = {}) {
 	return {
-		id: crypto.randomUUID(),
+		id: newId(),
 		name: null,
 		essence: null,
 		hint: 'A new shape forming in the depths...',
