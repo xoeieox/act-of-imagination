@@ -1,23 +1,36 @@
 <script>
-	// Compact model selector (aoi-modelselector-v0, 2026-11-21).
+	// Compact model selector + model management entry (aoi-modelselector-v0;
+	// upgraded by aoi-model-manager-v0, 2026-11-21, Erah-ratified design).
 	//
-	// Renders ONLY when the operator registry is non-empty ({#if} on
-	// $modelStore.catalog.length below - registry unconfigured = hidden =
-	// byte-identical to the pre-selector chrome). Labels are the only
-	// registry content that can ever reach this component: the catalog
-	// carries {key,label} and nothing else (Kyma catalog rule).
+	// The select renders ONLY when the combined catalog is non-empty
+	// ({#if} below - registry unconfigured = hidden = byte-identical to the
+	// pre-selector chrome). Labels + masked metadata (status badge, draft
+	// warning) are the only catalog content that can ever reach this
+	// component: rows are {key,label,source,status?,hasKey?,keyLast4?} and
+	// nothing else (Kyma catalog rule, invariant I-9).
 	//
-	// Lives inside the hamburger menu chrome, matching the aoi-motion
-	// idiom: enters ~300ms ease-out (menu entries come in at 480; the
-	// selector is subordinate chrome), exits ~180ms ease-in.
+	// Under the select, a 'Manage models' entry opens the full Kyma-style
+	// management panel (ModelManager): end users add/test/save their own
+	// models with no file editing. The entry is visible once the catalog
+	// has loaded, even when empty - an empty registry must still be
+	// self-serviceable.
+	//
+	// Motion idiom unchanged: enters ~300ms ease-out, exits ~180ms ease-in.
 	import { fade } from 'svelte/transition';
 	import { cubicOut, cubicIn } from 'svelte/easing';
 	import { modelStore } from '$lib/stores/model.js';
+	import ModelManager from './ModelManager.svelte';
 
 	$effect(() => {
 		// Catalog fetch is a no-op outside the browser; one call per mount.
 		modelStore.load();
 	});
+
+	let managing = $state(false);
+
+	const selectedRow = $derived(
+		$modelStore.catalog.find((row) => row.key === $modelStore.selected) ?? null
+	);
 
 	function handleChange(event) {
 		const value = event.currentTarget.value;
@@ -27,6 +40,7 @@
 
 {#if $modelStore.catalog.length > 0}
 	<div
+		id="aoi-model-block"
 		class="px-4 py-3 border-t border-silver-400/10"
 		in:fade={{ duration: 300, easing: cubicOut }}
 		out:fade={{ duration: 180, easing: cubicIn }}
@@ -45,8 +59,43 @@
 		>
 			<option value="">Lane default</option>
 			{#each $modelStore.catalog as model (model.key)}
-				<option value={model.key}>{model.label}</option>
+				<option value={model.key}>{model.label}{model.status === 'draft' ? ' (draft)' : ''}</option>
 			{/each}
 		</select>
+		{#if selectedRow && selectedRow.status === 'draft'}
+			<!-- Draft selection warns inline (UI-side only; drafts stay
+			     send-able - the server never blocks a saved row). -->
+			<p
+				id="aoi-draft-warning"
+				class="mt-2 text-xs text-amber-300/80 leading-snug"
+				in:fade={{ duration: 200, easing: cubicOut }}
+			>
+				This model is a draft - it has not passed a connection test yet.
+			</p>
+		{/if}
 	</div>
+{/if}
+
+{#if $modelStore.loaded}
+	<div id="aoi-manage-block" class="px-4 py-2 border-t border-silver-400/10">
+		<button
+			id="aoi-manage-models"
+			onclick={() => (managing = !managing)}
+			class="w-full text-left text-xs uppercase tracking-widest text-silver-400 hover:text-silver-200 transition-colors"
+			aria-expanded={managing}
+		>
+			{managing ? 'Close model manager' : 'Manage models'}
+		</button>
+	</div>
+
+	{#if managing}
+		<div
+			id="aoi-model-manager"
+			class="px-4 py-3 border-t border-silver-400/10 max-h-[60vh] overflow-y-auto"
+			in:fade={{ duration: 300, easing: cubicOut }}
+			out:fade={{ duration: 180, easing: cubicIn }}
+		>
+			<ModelManager />
+		</div>
+	{/if}
 {/if}

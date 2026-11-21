@@ -25,7 +25,10 @@ const ENTRY = {
 	maxTokens: 4096
 };
 
-const REG_ENV = { AOI_MODELS_JSON: JSON.stringify([ENTRY]) };
+const REG_ENV = {
+	AOI_MODEL_STORE_DIR: '/nonexistent-aoi-test-store', // hermetic: file-absent path
+	AOI_MODELS_JSON: JSON.stringify([ENTRY])
+};
 
 describe('parseRegistry', () => {
 	it('unset / empty / whitespace -> hidden (empty registry, not invalid)', () => {
@@ -102,22 +105,42 @@ describe('parseRegistry', () => {
 });
 
 describe('registrySummary - the Kyma catalog rule', () => {
-	it('ships {key,label} ONLY - sentinel values never appear', () => {
+	it('ships {key,label,source,hasKey?} ONLY - sentinel values never appear', () => {
 		const { models, invalid } = registrySummary({ env: REG_ENV });
 		expect(invalid).toBe(false);
-		expect(models).toEqual([{ key: 'lane-chat', label: 'Lane default (chat)' }]);
+		expect(models).toEqual([
+			{ key: 'lane-chat', label: 'Lane default (chat)', source: 'operator', hasKey: true }
+		]);
 		const text = JSON.stringify(models);
 		expect(text).not.toContain('registry-sentinel.invalid');
 		expect(text).not.toContain('model-id-sentinel');
 		expect(text).not.toContain('key-sentinel-value');
-		expect(Object.keys(models[0]).sort()).toEqual(['key', 'label']);
+		expect(Object.keys(models[0]).sort()).toEqual(['hasKey', 'key', 'label', 'source']);
+	});
+
+	it('keyless operator row ships {key,label,source} - no hasKey', () => {
+		const env = {
+			AOI_MODELS_JSON: JSON.stringify([
+				{
+					key: 'lane-chat',
+					label: 'Lane default (chat)',
+					baseUrl: 'https://registry-sentinel.invalid/v1',
+					model: 'model-id-sentinel'
+				}
+			])
+		};
+		const { models } = registrySummary({ env });
+		expect(models).toEqual([
+			{ key: 'lane-chat', label: 'Lane default (chat)', source: 'operator' }
+		]);
 	});
 
 	it('invalid registry surfaces the invalid flag with no entries', () => {
-		expect(registrySummary({ env: { AOI_MODELS_JSON: '[' } })).toEqual({
-			models: [],
-			invalid: true
-		});
+		expect(
+			registrySummary({
+				env: { AOI_MODEL_STORE_DIR: '/nonexistent-aoi-test-store', AOI_MODELS_JSON: '[' }
+			})
+		).toEqual({ models: [], invalid: true });
 	});
 });
 
@@ -147,9 +170,11 @@ describe('resolveModelSelection', () => {
 	});
 
 	it('malformed registry + selection -> 400 model_registry_invalid (fail closed)', () => {
-		expect(resolveModelSelection('lane-chat', { env: { AOI_MODELS_JSON: '{oops' } })).toEqual({
-			error: { status: 400, body: { error: 'model_registry_invalid' } }
-		});
+		expect(
+			resolveModelSelection('lane-chat', {
+				env: { AOI_MODEL_STORE_DIR: '/nonexistent-aoi-test-store', AOI_MODELS_JSON: '{oops' }
+			})
+		).toEqual({ error: { status: 400, body: { error: 'model_registry_invalid' } } });
 	});
 
 	it('malformed registry WITHOUT selection -> lane path stays open (selector hidden)', () => {

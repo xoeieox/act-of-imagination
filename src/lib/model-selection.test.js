@@ -13,7 +13,7 @@ import { MODEL_STORAGE_KEY, sanitizeModelCatalog, resolveStoredKey } from './mod
 describe('sanitizeModelCatalog', () => {
 	it('keeps only {key,label} string pairs, drops garbage and extras', () => {
 		const raw = [
-			{ key: 'a', label: 'A', apiKey: 'sk-nope', baseUrl: 'https://sneak.invalid' },
+			{ key: 'a', label: 'A', apiKey: 'knope', baseUrl: 'https://sneak.invalid' },
 			{ key: 'b', label: ' B ' },
 			{ key: 'c' },
 			{ label: 'no key' },

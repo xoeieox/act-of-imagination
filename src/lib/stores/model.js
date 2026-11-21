@@ -36,6 +36,16 @@ function createModelStore() {
 	async function load() {
 		if (typeof window === 'undefined') return;
 		if (latest.loaded) return; // one catalog fetch per page life
+		await loadNow();
+	}
+
+	/** Re-fetch after a manager mutation; stored pick re-validates. */
+	async function refresh() {
+		if (typeof window === 'undefined') return;
+		await loadNow();
+	}
+
+	async function loadNow() {
 		let catalog = [];
 		try {
 			const res = await fetch('/api/models', { headers: { accept: 'application/json' } });
@@ -88,7 +98,7 @@ function createModelStore() {
 		return latest.selected ? { modelKey: latest.selected } : {};
 	}
 
-	return { subscribe, load, select, requestField };
+	return { subscribe, load, refresh, select, requestField };
 }
 
 export const modelStore = createModelStore();
