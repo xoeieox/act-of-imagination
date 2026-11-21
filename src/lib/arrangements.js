@@ -1,5 +1,6 @@
 import { writable, get } from 'svelte/store';
 import { browser } from '$app/environment';
+import { newId } from '$lib/uuid.js';
 
 /**
  * Arrangements store - persists witnessed arrangements with reflections
@@ -68,7 +69,10 @@ function createArrangementsStore() {
 		// Persist a witnessed arrangement; returns the created record
 		save({ slots, context, narrative }) {
 			const arrangement = {
-				id: crypto.randomUUID(),
+				// newId, not the direct call: on plain-http origins (the routine
+				// tailnet case) the Web API random-uuid helper is undefined and a
+				// bare call crashed arrangement creation - aoi-uuidfix 2026-11-21.
+				id: newId(),
 				slots: (Array.isArray(slots) ? slots.slice(0, 3) : []).map((card) =>
 					card && typeof card === 'object'
 						? {
