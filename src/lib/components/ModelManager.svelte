@@ -6,7 +6,9 @@
 	//   - '+ Add model' opens the form: Label, Base URL, Model ID, API key
 	//     (password field; may stay empty for local vLLM), Max tokens;
 	//   - 'Test connection' shows the verdict + latency + sample line;
-	//     a failing test blocks Save-as-healthy (Save as draft stays open);
+	//     a failing test blocks Save-as-healthy ONLY - Save as draft
+	//     stays working after every test outcome (2026-11-21 draft-save
+	//     fix: a failed verdict must never gate the draft path);
 	//   - edits PATCH the row (blank fields keep the stored values, the
 	//     key shows masked as its last-4 fragment, and an explicit
 	//     'remove key' clears the stored key);
@@ -38,7 +40,10 @@
 
 	const formValid = $derived(label.trim() !== '' && modelId.trim() !== '' && endpointOk(endpoint));
 	const canSaveHealthy = $derived(formValid && verdict !== null && verdict.ok === true);
-	const canSaveDraft = $derived(formValid && verdict === null);
+	// Draft save is gated on form validity ONLY: any test outcome -
+	// pass, fail, timeout - leaves the draft path enabled (Erah bug,
+	// 2026-11-21: the old `verdict === null` gate disabled it post-test).
+	const canSaveDraft = $derived(formValid);
 
 	function endpointOk(value) {
 		const v = String(value || '').trim();
