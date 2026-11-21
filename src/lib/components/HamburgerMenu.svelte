@@ -192,30 +192,29 @@
 				{/if}
 			</button>
 
-			{#if cardCount >= 3}
-				<div class="my-2 mx-4 border-t border-silver-400/10"></div>
+			<!-- Availability ruling 2026-11-21: the arrangement table is always open. -->
+			<div class="my-2 mx-4 border-t border-silver-400/10"></div>
 
-				<button
-					onclick={() => handleNavigate('arrangement')}
-					class="w-full px-4 py-3 flex items-center gap-3 text-silver-300 hover:text-silver-100 hover:bg-depth-700/50 transition-colors"
+			<button
+				onclick={() => handleNavigate('arrangement')}
+				class="w-full px-4 py-3 flex items-center gap-3 text-silver-300 hover:text-silver-100 hover:bg-depth-700/50 transition-colors"
+			>
+				<svg
+					xmlns="http://www.w3.org/2000/svg"
+					class="h-5 w-5"
+					fill="none"
+					viewBox="0 0 24 24"
+					stroke="currentColor"
 				>
-					<svg
-						xmlns="http://www.w3.org/2000/svg"
-						class="h-5 w-5"
-						fill="none"
-						viewBox="0 0 24 24"
-						stroke="currentColor"
-					>
-						<path
-							stroke-linecap="round"
-							stroke-linejoin="round"
-							stroke-width="2"
-							d="M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-						/>
-					</svg>
-					Arrange cards
-				</button>
-			{/if}
+					<path
+						stroke-linecap="round"
+						stroke-linejoin="round"
+						stroke-width="2"
+						d="M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+					/>
+				</svg>
+				Arrange cards
+			</button>
 		</nav>
 
 		<!-- Auth section -->

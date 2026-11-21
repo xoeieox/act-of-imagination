@@ -17,6 +17,18 @@ import { browser } from '$app/environment';
 
 const LOCAL_STORAGE_KEY = 'act-of-imagination-arrangements';
 
+/**
+ * Availability ruling (Erah 2026-11-21): the arrangement screen is open
+ * unconditionally - entries carry no card-count lock. Only GENERATING has a
+ * floor: this many cards must be placed in the slots, and the UI explains
+ * that in calm words rather than hiding the door.
+ */
+export const MIN_PLACED_TO_GENERATE = 3;
+
+export function canGenerate(filledCount) {
+	return filledCount >= MIN_PLACED_TO_GENERATE;
+}
+
 function createArrangementsStore() {
 	const { subscribe, set, update } = writable({
 		arrangements: [],

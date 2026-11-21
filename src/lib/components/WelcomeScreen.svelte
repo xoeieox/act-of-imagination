@@ -84,32 +84,31 @@
 				</span>
 			</button>
 
-			{#if cardCount >= 3}
-				<button
-					onclick={onStartArrangement}
-					class="w-full px-6 py-4 rounded-xl font-medium transition-all duration-200
+			<!-- Availability ruling 2026-11-21: no card-count lock on the door. -->
+			<button
+				onclick={onStartArrangement}
+				class="w-full px-6 py-4 rounded-xl font-medium transition-all duration-200
 						bg-depth-700 text-silver-300 border border-silver-400/20
 						hover:border-silver-400/40 hover:text-silver-200"
-				>
-					<span class="flex items-center justify-center gap-3">
-						<svg
-							xmlns="http://www.w3.org/2000/svg"
-							class="h-5 w-5"
-							fill="none"
-							viewBox="0 0 24 24"
-							stroke="currentColor"
-						>
-							<path
-								stroke-linecap="round"
-								stroke-linejoin="round"
-								stroke-width="2"
-								d="M4 5a1 1 0 011-1h14a1 1 0 011 1v2a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM4 13a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H5a1 1 0 01-1-1v-6zM16 13a1 1 0 011-1h2a1 1 0 011 1v6a1 1 0 01-1 1h-2a1 1 0 01-1-1v-6z"
-							/>
-						</svg>
-						Arrange existing cards
-					</span>
-				</button>
-			{/if}
+			>
+				<span class="flex items-center justify-center gap-3">
+					<svg
+						xmlns="http://www.w3.org/2000/svg"
+						class="h-5 w-5"
+						fill="none"
+						viewBox="0 0 24 24"
+						stroke="currentColor"
+					>
+						<path
+							stroke-linecap="round"
+							stroke-linejoin="round"
+							stroke-width="2"
+							d="M4 5a1 1 0 011-1h14a1 1 0 011 1v2a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM4 13a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H5a1 1 0 01-1-1v-6zM16 13a1 1 0 011-1h2a1 1 0 011 1v6a1 1 0 01-1 1h-2a1 1 0 01-1-1v-6z"
+						/>
+					</svg>
+					Arrange existing cards
+				</span>
+			</button>
 
 			<!-- Secondary actions -->
 			<div class="flex gap-3 pt-2">
@@ -140,9 +139,14 @@
 		<!-- Hint text -->
 		<p class="mt-8 text-silver-400/40 text-xs">
 			{#if cardCount === 0}
-				Start a conversation to discover the cards within.
+				Start a conversation to discover the cards within. The arrangement table is open whenever
+				you wish.
 			{:else if cardCount < 3}
-				Surface {3 - cardCount} more card{3 - cardCount > 1 ? 's' : ''} to unlock arrangement play.
+				An arrangement places three cards together. Surface {3 - cardCount} more card{3 -
+					cardCount >
+				1
+					? 's'
+					: ''} to weave an interaction - or sit at the table now and converse until they surface.
 			{:else}
 				Your cards await arrangement.
 			{/if}
