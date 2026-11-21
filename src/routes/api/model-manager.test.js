@@ -342,6 +342,62 @@ describe('POST /api/models/test (fake endpoints, zero real network)', () => {
 	});
 });
 
+describe('draft save after a FAILED test - API level (Erah bug 2026-11-21)', () => {
+	beforeEach(clearEnv);
+	afterEach(restoreEnv);
+
+	function useTransportRefusal() {
+		const orig = globalThis.fetch;
+		globalThis.fetch = vi.fn(async () => {
+			const cause = Object.assign(new Error('connect ECONNREFUSED 127.0.0.1:9'), {
+				code: 'ECONNREFUSED'
+			});
+			throw new TypeError('fetch failed', { cause });
+		});
+		return { restore: () => (globalThis.fetch = orig) };
+	}
+
+	it('failed test verdict, then the very same config saves as draft 201', async () => {
+		const stubs = useTransportRefusal();
+		let key;
+		try {
+			const res = await testPOST({ request: jsonRequest(ROW) });
+			const verdict = await res.json();
+			expect(verdict.ok).toBe(false);
+			expect(verdict.leg).toBe(null);
+			expect(verdict.error).toBe('model not reachable from this server');
+			// the probe itself persisted nothing
+			expect(existsSync(userFile())).toBe(false);
+			// the client's post-failure path: POST {..same fields, status:'draft'}
+			const create = await catalogPOST({ request: jsonRequest({ ...ROW, status: 'draft' }) });
+			expect(create.status).toBe(201);
+			key = (await create.json()).key;
+		} finally {
+			stubs.restore();
+		}
+		const list = await catalogGET();
+		const text = await list.text();
+		expect(text).toContain(`"key":"${key}"`);
+		expect(text).toContain('"status":"draft"');
+		expectNoSecrets(text);
+		const del = await rowDELETE({ params: { key } });
+		expect(del.status).toBe(200);
+	});
+
+	it('a test-failure verdict never mutates the store (draft path stays clean)', async () => {
+		writeOperator([{ key: 'lane-chat', label: 'Lane default (chat)', ...ROW }]);
+		const before = existsSync(userFile());
+		const stubs = useTransportRefusal();
+		try {
+			const res = await testPOST({ request: jsonRequest(ROW) });
+			expect((await res.json()).ok).toBe(false);
+		} finally {
+			stubs.restore();
+		}
+		expect(existsSync(userFile())).toBe(before);
+	});
+});
+
 function useConfiguredLanes() {
 	process.env.AOI_LLM_BASE_URL = 'https://lane-default.invalid/v1';
 	process.env.AOI_LLM_MODEL = 'lane-model';

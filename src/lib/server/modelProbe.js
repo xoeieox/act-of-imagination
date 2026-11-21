@@ -28,10 +28,18 @@ function redact(text, apiKey) {
 async function timed(fetchImpl, url, init, timeoutMs) {
 	const started = Date.now();
 	const ctrl = new AbortController();
-	const timer = setTimeout(() => ctrl.abort(), timeoutMs);
+	let timedOut = false;
+	const timer = setTimeout(() => {
+		timedOut = true;
+		ctrl.abort();
+	}, timeoutMs);
 	try {
 		const res = await fetchImpl(url, { ...init, signal: ctrl.signal });
 		return { res, ms: Date.now() - started };
+	} catch (err) {
+		const wrapped = new Error(`probe fetch failed: ${classifyProbeError(err, timedOut)}`);
+		wrapped.probeClass = classifyProbeError(err, timedOut);
+		throw wrapped;
 	} finally {
 		clearTimeout(timer);
 	}
@@ -46,6 +54,31 @@ function firstModelId(data) {
 	if (!list) return null;
 	const first = list.find((m) => m && typeof m.id === 'string' && m.id);
 	return first ? first.id : null;
+}
+
+/**
+ * Classify a thrown fetch error into an honest failure class so the
+ * verdict line matches what actually happened (Erah bug, 2026-11-21:
+ * a refused connection on his Mac-loopback pap endpoint must read as
+ * transport-unreachable, not as a generic probe failure).
+ *   'timeout'    - the probe timer aborted the request
+ *   'transport'  - curl-7-style: connection refused / host unreachable
+ *   'unknown'    - neither (never claims a class it cannot support)
+ */
+function classifyProbeError(err, timedOut) {
+	if (timedOut) return 'timeout';
+	const name = typeof err?.name === 'string' ? err.name : '';
+	const causeName = typeof err?.cause?.name === 'string' ? err.cause.name : '';
+	const code = String(err?.cause?.code || err?.code || '').toUpperCase();
+	const causeMsg = String(err?.cause?.message || '');
+	if (name === 'AbortError' || causeName === 'AbortError') return 'timeout';
+	if (/^E(CONNREFUSED|CONNRESET|HOSTUNREACH|NETUNREACH|NOTFOUND|AI_AGAIN|PIPE)$/.test(code))
+		return 'transport';
+	if (/^UND_ERR_(CONNECT|SOCKET)/.test(code)) return 'transport';
+	if (/ECONNREFUSED|EHOSTUNREACH|ENETUNREACH|ECONNRESET|ENOTFOUND/i.test(causeMsg))
+		return 'transport';
+	if (name === 'TypeError' && err?.cause) return 'transport';
+	return 'unknown';
 }
 
 /**
@@ -74,6 +107,7 @@ export async function probeModelConfig(config, { fetchImpl, timeoutMs = TIMEOUT_
 	let modelsStatus;
 	let modelsSample = null;
 	let modelsMs = 0;
+	let modelsClass = 'unknown';
 	try {
 		const { res, ms } = await timed(
 			doFetch,
@@ -91,7 +125,8 @@ export async function probeModelConfig(config, { fetchImpl, timeoutMs = TIMEOUT_
 				modelsSample = null; // listing shape unknown; leg still passed
 			}
 		}
-	} catch {
+	} catch (err) {
+		modelsClass = err?.probeClass || 'unknown';
 		modelsStatus = 0; // transport error / timeout: treated as no-answer
 	}
 
@@ -149,8 +184,11 @@ export async function probeModelConfig(config, { fetchImpl, timeoutMs = TIMEOUT_
 				? `chat probe responded ${res.status}: ${detail}`
 				: `chat probe responded ${res.status}`;
 		}
-	} catch {
-		chatError = 'chat probe failed (timeout or transport error)';
+	} catch (err) {
+		const cls = err?.probeClass || 'unknown';
+		if (cls === 'transport') chatError = 'model not reachable from this server';
+		else if (cls === 'timeout') chatError = 'connection test timed out - no answer in time';
+		else chatError = 'chat probe failed (unexpected transport error)';
 	}
 
 	if (chatOk) {
@@ -171,6 +209,13 @@ export async function probeModelConfig(config, { fetchImpl, timeoutMs = TIMEOUT_
 		};
 	}
 	const detail =
-		chatError || (modelsStatus ? `models probe responded ${modelsStatus}` : 'endpoint unreachable');
+		chatError ||
+		(modelsStatus
+			? `models probe responded ${modelsStatus}`
+			: modelsClass === 'transport'
+				? 'model not reachable from this server'
+				: modelsClass === 'timeout'
+					? 'connection test timed out - no answer in time'
+					: 'endpoint unreachable');
 	return { ok: false, latencyMs: modelsMs + chatMs, leg: null, error: redact(detail, apiKey) };
 }
