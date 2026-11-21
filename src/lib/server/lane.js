@@ -184,20 +184,44 @@ function normalizeToolCalls(message) {
  */
 export async function chat(
 	laneName,
-	{ messages, tools, toolChoice, maxTokens, fetch: fetchImpl, env = process.env } = {}
+	{
+		messages,
+		tools,
+		toolChoice,
+		maxTokens,
+		fetch: fetchImpl,
+		env = process.env,
+		modelOverride
+	} = {}
 ) {
 	const lane = resolveLane(laneName, { env });
 	if (!lane) throw new LaneUnconfiguredError(laneName);
 	if (!Array.isArray(messages)) throw new TypeError('lane chat: messages must be an array');
 
-	const body = { model: lane.model, messages };
+	// Model selector override (aoi-model-selector-v0): when the caller
+	// supplies a validated registry entry (resolved server-side in
+	// modelRegistry.js - never a raw client string), it replaces this
+	// request's wire targets. The resolveLane gate above still stands: a
+	// selection rides the named lane's transport and the fail-closed 501
+	// posture is unchanged. Without an override every byte below is today's
+	// lane-env behavior.
+	const target = modelOverride
+		? {
+				baseUrl: modelOverride.baseUrl,
+				model: modelOverride.model,
+				apiKey: modelOverride.apiKey,
+				maxTokens: modelOverride.maxTokens ?? lane.maxTokens
+			}
+		: lane;
+
+	const body = { model: target.model, messages };
 	if (Array.isArray(tools) && tools.length > 0) body.tools = tools.map(normalizeTool);
 	if (toolChoice !== undefined) body.tool_choice = toolChoice;
-	const effectiveMaxTokens = lane.maxTokens != null ? lane.maxTokens : maxTokens;
+	const effectiveMaxTokens = target.maxTokens != null ? target.maxTokens : maxTokens;
 	if (effectiveMaxTokens != null) body.max_tokens = effectiveMaxTokens;
 
 	const headers = { 'content-type': 'application/json' };
-	if (lane.apiKey) headers.authorization = `Bearer ${lane.apiKey}`;
+	if (target.apiKey) headers.authorization = `Bearer ${target.apiKey}`;
 
 	const doFetch = fetchImpl || globalThis.fetch;
 	if (typeof doFetch !== 'function') {
@@ -206,7 +230,7 @@ export async function chat(
 
 	let response;
 	try {
-		response = await doFetch(`${lane.baseUrl}/chat/completions`, {
+		response = await doFetch(`${target.baseUrl}/chat/completions`, {
 			method: 'POST',
 			headers,
 			body: JSON.stringify(body)

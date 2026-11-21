@@ -19,6 +19,21 @@ production build, set `AOI_DEV_PANEL=1` in the server environment before startin
 trusted local/tailnet instances only; with the flag unset (the default) `/dev` stays a
 404, and it must never be enabled on a public deployment.
 
+### Choosing a model at runtime (operator registry)
+
+To pick among several configured models in the app itself, set `AOI_MODELS_JSON` in the
+server environment (see `.env.example`) to a JSON array of named OpenAI-compatible
+entries - same wire as the lanes (OpenAI, OpenRouter, Groq, local vLLM/SGLang, or
+Anthropic through its OpenAI-compat endpoint; a native Messages adapter is a known
+follow-up, not shipped). It is read at request time like `AOI_DEV_PANEL`: edit the
+service env file and restart, no rebuild. With the registry unset (the default) the
+selector is hidden and every request keeps the exact lane-env posture described above.
+The catalog endpoint (`/api/models`) exposes each entry's `key` + `label` only - keys,
+model ids and base urls never enter the browser; a picked entry's endpoint is validated
+server-side per request, and an unknown selection is a 400, never a silent fallback to
+a lane. A selection rides its lane's fail-closed gate: the underlying `AOI_LLM_*` lane
+must still be configured.
+
 ## Quick Start
 
 1. **Install dependencies**

@@ -5,6 +5,7 @@
 	import { assemblies } from '$lib/supabase/assemblies.js';
 	import { isAuthenticated, signOut } from '$lib/supabase/auth.js';
 	import { isSupabaseConfigured } from '$lib/supabase/client.js';
+	import ModelSelector from './ModelSelector.svelte';
 	// aoi-motion 2026-11-17: menu enters ~320ms, exits ~200ms (slide back a
 	// touch faster than it came out, per Erah).
 	import { fade, fly } from 'svelte/transition';
@@ -216,6 +217,10 @@
 				Arrange cards
 			</button>
 		</nav>
+
+		<!-- Model selector (aoi-model-selector-v0): visible only when the
+		     operator registry is non-empty; renders its own border-t. -->
+		<ModelSelector />
 
 		<!-- Auth section -->
 		<div class="border-t border-silver-400/10 p-4">

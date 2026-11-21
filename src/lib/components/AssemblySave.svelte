@@ -1,5 +1,6 @@
 <script>
 	import { assembliesStore } from '$lib/supabase/assemblies.js';
+	import { modelStore } from '$lib/stores/model.js';
 
 	// Props
 	let {
@@ -42,7 +43,9 @@
 				body: JSON.stringify({
 					cards,
 					context,
-					narrative
+					narrative,
+					// aoi-model-selector-v0: persisted selection when set.
+					...modelStore.requestField()
 				})
 			});
 

@@ -5,6 +5,7 @@
 	import { SYSTEM_CONTEXTS } from '$lib/data/contexts.js';
 	import { assemblies, initAssemblies } from '$lib/supabase/assemblies.js';
 	import { arrangements, canGenerate } from '$lib/arrangements.js';
+	import { modelStore } from '$lib/stores/model.js';
 	import { onMount } from 'svelte';
 
 	// Props for loading an existing assembly
@@ -246,7 +247,9 @@
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify({
 					slots: slots,
-					context: selectedContext // Pass full context object
+					context: selectedContext, // Pass full context object
+					// aoi-model-selector-v0: persisted selection when set.
+					...modelStore.requestField()
 				})
 			});
 

@@ -1,9 +1,18 @@
 import { json } from '@sveltejs/kit';
 import { chat as laneChat, laneErrorShape, LaneUpstreamError } from '$lib/server/lane.js';
+import { resolveModelSelection } from '$lib/server/modelRegistry.js';
 
 export async function POST({ request }) {
 	try {
-		const { cards, context, narrative } = await request.json();
+		const { cards, context, narrative, modelKey } = await request.json();
+
+		// Model selector (aoi-model-selector-v0): validated server-side
+		// before any outbound fetch; unknown key / malformed registry = 400,
+		// never a silent fallback. Absent = today's exact lane posture.
+		const selection = resolveModelSelection(modelKey);
+		if (selection.error) {
+			return json(selection.error.body, { status: selection.error.status });
+		}
 
 		if (!narrative) {
 			return json({ error: 'Narrative is required' }, { status: 400 });
@@ -41,7 +50,8 @@ Write a 1-2 sentence synopsis that captures what this assembly explores.`;
 			],
 			// Budget must cover reasoning_content plus the synopsis itself on
 			// thinking lanes (aoi-fix 2026-11-17).
-			maxTokens: 2048
+			maxTokens: 2048,
+			modelOverride: selection.entry
 		});
 
 		const synopsis = result.content ? result.content.trim() : '';
