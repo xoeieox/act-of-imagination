@@ -1,5 +1,6 @@
 import { json } from '@sveltejs/kit';
 import { chat as laneChat, LaneUpstreamError, laneErrorShape } from '$lib/server/lane.js';
+import { buildArrangeMessages } from '$lib/server/arrange-prompt.js';
 import { SYSTEM_CONTEXTS, getSystemContext } from '$lib/data/contexts.js';
 
 // Legacy context prompts for backward compatibility
@@ -16,16 +17,16 @@ const LEGACY_CONTEXT_PROMPTS = {
 
 export async function POST({ request }) {
 	try {
-		const { cards, context } = await request.json();
+		const { cards, slots, context } = await request.json();
 
-		if (!cards || cards.length < 2) {
+		// Client sends `slots` (3 free slots, nulls allowed); `cards` remains
+		// the legacy shape (plain array, filled left to right).
+		const arrangement = Array.isArray(slots) ? slots : cards;
+		const filled = (Array.isArray(arrangement) ? arrangement : []).filter((c) => c != null);
+
+		if (filled.length < 2) {
 			return json({ error: 'At least 2 cards are required' }, { status: 400 });
 		}
-
-		// Build the card descriptions
-		const cardDescriptions = cards
-			.map((card, i) => `Card ${i + 1}: "${card.name}" - ${card.essence}`)
-			.join('\n');
 
 		// Handle both new format (context object) and legacy format (context string)
 		let contextPrompt;
@@ -42,32 +43,12 @@ export async function POST({ request }) {
 			contextPrompt = SYSTEM_CONTEXTS[0].prompt;
 		}
 
-		const systemPrompt = `You are a narrator witnessing an interaction between symbolic elements from someone's inner landscape. Your role is to:
-
-- Generate a vivid, evocative scene or moment where these elements interact
-- Be specific and sensory - use images, textures, movements
-- Let the arrangement suggest relationships and dynamics
-- Surprise with possibilities the person might not have seen
-- Stay grounded in the established card meanings, but let them reveal new facets
-- Do NOT interpret or explain what anything "means" - just show what happens
-
-Keep the narrative to 2-3 paragraphs. End with an image or moment that invites contemplation - something to sit with, not a conclusion or lesson.
-
-Write in present tense. Be poetic but not purple. Trust the reader.`;
-
-		const userPrompt = `The following cards have been placed in an arrangement:
-
-${cardDescriptions}
-
-Context: ${contextPrompt}
-
-Generate a scene or interaction that emerges from these elements meeting.`;
+		// Assembled by the pure prompt module (design :335-348): slot positions,
+		// essences, depth indicators, context, gravitational-pull instruction.
+		const messages = buildArrangeMessages(arrangement, contextPrompt);
 
 		const result = await laneChat('arrange', {
-			messages: [
-				{ role: 'system', content: systemPrompt },
-				{ role: 'user', content: userPrompt }
-			],
+			messages,
 			maxTokens: 1024
 		});
 
