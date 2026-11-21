@@ -14,6 +14,11 @@ configure yourself. If no lane is configured, the app **fails closed**: the API 
 local-AI community's core ask - a genuinely local introspection tool, not a thin client for
 someone else's cloud.
 
+If you operate your own instance and want the `/dev` test-data panel available on a
+production build, set `AOI_DEV_PANEL=1` in the server environment before starting it - on
+trusted local/tailnet instances only; with the flag unset (the default) `/dev` stays a
+404, and it must never be enabled on a public deployment.
+
 ## Quick Start
 
 1. **Install dependencies**
