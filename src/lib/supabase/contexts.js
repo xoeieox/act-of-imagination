@@ -2,6 +2,7 @@ import { writable, derived } from 'svelte/store';
 import { browser } from '$app/environment';
 import { supabase, isSupabaseConfigured } from './client.js';
 import { SYSTEM_CONTEXTS, getSystemContext } from '$lib/data/contexts.js';
+import { newId } from '$lib/uuid.js';
 
 /**
  * Contexts service - manages system and user-created contexts
@@ -84,7 +85,7 @@ function createContextsStore() {
 		// Add a new user context
 		async addContext(context) {
 			const newContext = {
-				id: context.id || crypto.randomUUID(),
+				id: context.id || newId(),
 				name: context.name,
 				label: context.label,
 				description: context.description,

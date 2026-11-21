@@ -1,6 +1,7 @@
 import { writable, derived } from 'svelte/store';
 import { browser } from '$app/environment';
 import { supabase, isSupabaseConfigured } from './client.js';
+import { newId } from '$lib/uuid.js';
 
 /**
  * Assemblies service - manages saved arrangements and iterations
@@ -103,7 +104,7 @@ function createAssembliesStore() {
 		// Save a new assembly
 		async saveAssembly({ title, synopsis, cards, context, narrative }) {
 			const assembly = {
-				id: crypto.randomUUID(),
+				id: newId(),
 				title: title || generateDefaultTitle(cards),
 				synopsis,
 				cards: cards.map((c, i) => ({
@@ -115,7 +116,7 @@ function createAssembliesStore() {
 				})),
 				iterations: [
 					{
-						id: crypto.randomUUID(),
+						id: newId(),
 						iterationNumber: 1,
 						narrative,
 						cardSnapshot: cards.map((c, i) => ({
@@ -222,7 +223,7 @@ function createAssembliesStore() {
 
 					const iterationNumber = a.iterations.length + 1;
 					newIteration = {
-						id: crypto.randomUUID(),
+						id: newId(),
 						iterationNumber,
 						narrative,
 						cardSnapshot: cards.map((c, i) => ({

@@ -4,7 +4,7 @@
 	import AssemblySave from './AssemblySave.svelte';
 	import { SYSTEM_CONTEXTS } from '$lib/data/contexts.js';
 	import { assemblies, initAssemblies } from '$lib/supabase/assemblies.js';
-	import { arrangements } from '$lib/arrangements.js';
+	import { arrangements, canGenerate } from '$lib/arrangements.js';
 	import { onMount } from 'svelte';
 
 	// Props for loading an existing assembly
@@ -234,7 +234,7 @@
 	}
 
 	async function generateInteraction() {
-		if (filledCount < 2 || !selectedContext) return;
+		if (!canGenerate(filledCount) || !selectedContext) return;
 
 		isGenerating = true;
 		error = null;
@@ -584,9 +584,9 @@
 					<div class="flex justify-center mb-6">
 						<button
 							onclick={generateInteraction}
-							disabled={filledCount < 2 || isGenerating}
+							disabled={!canGenerate(filledCount) || isGenerating}
 							class="px-6 sm:px-8 py-3 rounded-xl font-medium transition-all duration-200
-							{filledCount >= 2
+							{canGenerate(filledCount)
 								? 'bg-silver-400/10 text-silver-200 border border-silver-400/30 hover:bg-silver-400/20 hover:glow-subtle'
 								: 'bg-depth-700 text-silver-400/50 border border-silver-400/10 cursor-not-allowed'}"
 						>
@@ -603,9 +603,17 @@
 						</button>
 					</div>
 
-					{#if filledCount < 2 && !generatedNarrative}
+					<!-- Availability ruling 2026-11-21: the screen is always open;
+					     generating waits for three placed cards and says so plainly. -->
+					{#if !canGenerate(filledCount) && !generatedNarrative}
 						<p class="text-center text-silver-400/50 text-sm mb-6">
-							Place at least 2 cards to generate an interaction
+							Three placed cards weave the interaction — {filledCount} of 3 placed,
+							{$surfacedCards.length} surfaced.
+							{#if $surfacedCards.length < 3}
+								Return to the conversation and more cards will surface; then place them here.
+							{:else}
+								Place the cards you surfaced into the slots above.
+							{/if}
 						</p>
 					{/if}
 

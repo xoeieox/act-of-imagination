@@ -1,5 +1,9 @@
 <script>
 	import { session, formingCards, surfacedCards, hasContent } from '$lib/stores/session.js';
+	// aoi-motion 2026-11-17: one motion language across screens - enter
+	// ~300ms ease-out, exit ~180ms ease-in.
+	import { fade, fly } from 'svelte/transition';
+	import { cubicOut, cubicIn } from 'svelte/easing';
 	import { navigation } from '$lib/stores/navigation.js';
 	import Message from '$lib/components/Message.svelte';
 	import Card from '$lib/components/Card.svelte';
@@ -189,7 +193,13 @@
 
 <!-- Arrangement Play Mode -->
 {#if $session.phase === 'ARRANGEMENT_PLAY'}
-	<ArrangementPlay initialAssembly={loadedAssembly} onLoaded={() => (loadedAssembly = null)} />
+	<div
+		class="h-full w-full flex flex-col"
+		in:fly={{ y: 12, duration: 600, easing: cubicOut }}
+		out:fade={{ duration: 320, easing: cubicIn }}
+	>
+		<ArrangementPlay initialAssembly={loadedAssembly} onLoaded={() => (loadedAssembly = null)} />
+	</div>
 
 	<!-- Card Proposal Modal -->
 {:else if $session.phase === 'CARD_PROPOSAL' && $session.pendingProposal}
@@ -250,7 +260,11 @@
 
 	<!-- Normal Conversation Mode -->
 {:else}
-	<div class="flex-1 flex w-full max-w-7xl mx-auto overflow-hidden">
+	<div
+		class="flex-1 flex w-full max-w-7xl mx-auto overflow-hidden"
+		in:fade={{ duration: 450 }}
+		out:fade={{ duration: 260 }}
+	>
 		<!-- Left Cards Panel -->
 		<aside
 			class="w-64 p-4 border-r border-silver-400/10 hidden lg:block overflow-y-auto flex-shrink-0"
@@ -396,9 +410,12 @@
 {#if showAssemblies}
 	<div
 		class="fixed inset-0 bg-depth-900/90 backdrop-blur-sm z-40 flex items-center justify-center p-4"
+		in:fade={{ duration: 400 }}
+		out:fade={{ duration: 260 }}
 	>
 		<div
-			class="bg-depth-800 border border-silver-400/20 rounded-2xl max-w-2xl w-full max-h-[80vh] overflow-hidden flex flex-col animate-rise"
+			class="bg-depth-800 border border-silver-400/20 rounded-2xl max-w-2xl w-full max-h-[80vh] overflow-hidden flex flex-col"
+			in:fly={{ y: 18, duration: 600, easing: cubicOut }}
 		>
 			<div class="p-4 border-b border-silver-400/10 flex items-center justify-between">
 				<h2 class="font-serif text-xl text-silver-100">Your Assemblies</h2>
@@ -436,9 +453,12 @@
 {#if showCards}
 	<div
 		class="fixed inset-0 bg-depth-900/90 backdrop-blur-sm z-40 flex items-center justify-center p-4"
+		in:fade={{ duration: 400 }}
+		out:fade={{ duration: 260 }}
 	>
 		<div
-			class="bg-depth-800 border border-silver-400/20 rounded-2xl max-w-2xl w-full max-h-[80vh] overflow-hidden flex flex-col animate-rise"
+			class="bg-depth-800 border border-silver-400/20 rounded-2xl max-w-2xl w-full max-h-[80vh] overflow-hidden flex flex-col"
+			in:fly={{ y: 18, duration: 600, easing: cubicOut }}
 		>
 			<div class="p-4 border-b border-silver-400/10 flex items-center justify-between">
 				<h2 class="font-serif text-xl text-silver-100">Your Cards</h2>
@@ -472,9 +492,12 @@
 {#if showTimeline && selectedAssembly}
 	<div
 		class="fixed inset-0 bg-depth-900/90 backdrop-blur-sm z-40 flex items-center justify-center p-4"
+		in:fade={{ duration: 400 }}
+		out:fade={{ duration: 260 }}
 	>
 		<div
-			class="bg-depth-800 border border-silver-400/20 rounded-2xl max-w-3xl w-full max-h-[85vh] overflow-hidden flex flex-col animate-rise"
+			class="bg-depth-800 border border-silver-400/20 rounded-2xl max-w-3xl w-full max-h-[85vh] overflow-hidden flex flex-col"
+			in:fly={{ y: 18, duration: 600, easing: cubicOut }}
 		>
 			<div class="p-4 border-b border-silver-400/10 flex items-center justify-between">
 				<h2 class="font-serif text-xl text-silver-100">{selectedAssembly.title}</h2>
