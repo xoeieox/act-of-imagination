@@ -221,7 +221,24 @@ export async function chat(
 	if (effectiveMaxTokens != null) body.max_tokens = effectiveMaxTokens;
 
 	const headers = { 'content-type': 'application/json' };
-	if (target.apiKey) headers.authorization = `Bearer ${target.apiKey}`;
+	// Advanced auth (aoi-advanced-auth-v0, 2026-11-21): a server-validated
+	// store entry may carry authMode/extraHeaders/userAgent. 'bearer' (and any
+	// absent field) keeps today's byte-identical wire shape; 'raw' ships the
+	// key verbatim with no 'Bearer ' prefix - the OpenCode Go relay shape
+	// (Kyma investigation 2026-11-02: MissingSessionID without the session
+	// header, 400 for Bearer-shaped auth). Extra headers merge on top (names
+	// normalized lowercase at validate time); a UA override replaces fetch's
+	// default. Header VALUES are never logged or echoed by this module.
+	const authMode = modelOverride && modelOverride.authMode === 'raw' ? 'raw' : 'bearer';
+	if (target.apiKey) {
+		headers.authorization = authMode === 'raw' ? target.apiKey : `Bearer ${target.apiKey}`;
+	}
+	if (modelOverride && modelOverride.extraHeaders) {
+		for (const [name, value] of Object.entries(modelOverride.extraHeaders)) {
+			if (typeof value === 'string' && value !== '') headers[name] = value;
+		}
+	}
+	if (modelOverride && modelOverride.userAgent) headers['user-agent'] = modelOverride.userAgent;
 
 	const doFetch = fetchImpl || globalThis.fetch;
 	if (typeof doFetch !== 'function') {

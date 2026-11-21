@@ -17,10 +17,13 @@
 
 const TIMEOUT_MS = 15000;
 
-function redact(text, apiKey) {
+function redact(text, secret) {
 	let out = typeof text === 'string' ? text : String(text ?? '');
-	if (typeof apiKey === 'string' && apiKey !== '' && out.includes(apiKey)) {
-		out = out.split(apiKey).join('[redacted]');
+	const secrets = Array.isArray(secret) ? secret : [secret];
+	for (const s of secrets) {
+		if (typeof s === 'string' && s !== '' && out.includes(s)) {
+			out = out.split(s).join('[redacted]');
+		}
 	}
 	return out.slice(0, 300);
 }
@@ -82,7 +85,11 @@ function classifyProbeError(err, timedOut) {
 }
 
 /**
- * Probe one OpenAI-compatible config {baseUrl, model, apiKey?, maxTokens?}.
+ * Probe one OpenAI-compatible config {baseUrl, model, apiKey?, maxTokens?}
+ * plus the advanced-auth trio {authMode?, extraHeaders?, userAgent?}
+ * (aoi-advanced-auth-v0): the probe carries the FULL auth config so a
+ * passing Test proves the exotic wire shape too; every advanced VALUE
+ * is redaction-list material.
  * Returns { ok, latencyMs, leg, sample?, error? } where leg is
  * 'both' | 'chat' | 'models' | null:
  *   ok=true  -> chat round-trip succeeded (leg 'both' if the listing
@@ -100,7 +107,34 @@ export async function probeModelConfig(config, { fetchImpl, timeoutMs = TIMEOUT_
 	const model = String(config.model || '');
 	const apiKey = typeof config.apiKey === 'string' && config.apiKey !== '' ? config.apiKey : null;
 	const headers = { 'content-type': 'application/json' };
-	if (apiKey) headers.authorization = `Bearer ${apiKey}`;
+	// Advanced auth (aoi-advanced-auth-v0): the probe runs the row's FULL
+	// auth config, so Test validates exactly the shape chat will send:
+	// 'raw' ships the key verbatim (no 'Bearer ' prefix), extraHeaders
+	// merge onto both legs, a UA override replaces fetch's default. Every
+	// advanced VALUE joins the redaction set - upstream echoes can never
+	// carry a credential (or a session id) back to a client.
+	const authMode = config.authMode === 'raw' ? 'raw' : 'bearer';
+	if (apiKey) headers.authorization = authMode === 'raw' ? apiKey : `Bearer ${apiKey}`;
+	const secretValues = apiKey ? [apiKey] : [];
+	if (
+		config.extraHeaders &&
+		typeof config.extraHeaders === 'object' &&
+		!Array.isArray(config.extraHeaders)
+	) {
+		for (const [rawName, value] of Object.entries(config.extraHeaders)) {
+			if (typeof value !== 'string' || value === '') continue;
+			headers[String(rawName).trim().toLowerCase()] = value;
+			secretValues.push(value);
+		}
+	}
+	const userAgentValue =
+		typeof config.userAgent === 'string' && config.userAgent.trim() !== ''
+			? config.userAgent.trim()
+			: null;
+	if (userAgentValue) {
+		headers['user-agent'] = userAgentValue;
+		secretValues.push(userAgentValue);
+	}
 
 	// Leg 1: GET {base}/models (the Kyma first probe).
 	let modelsOk = false;
@@ -205,7 +239,7 @@ export async function probeModelConfig(config, { fetchImpl, timeoutMs = TIMEOUT_
 			latencyMs: modelsMs,
 			leg: 'models',
 			sample: modelsSample || undefined,
-			error: redact(chatError || 'chat leg failed', apiKey)
+			error: redact(chatError || 'chat leg failed', secretValues)
 		};
 	}
 	const detail =
@@ -217,5 +251,10 @@ export async function probeModelConfig(config, { fetchImpl, timeoutMs = TIMEOUT_
 				: modelsClass === 'timeout'
 					? 'connection test timed out - no answer in time'
 					: 'endpoint unreachable');
-	return { ok: false, latencyMs: modelsMs + chatMs, leg: null, error: redact(detail, apiKey) };
+	return {
+		ok: false,
+		latencyMs: modelsMs + chatMs,
+		leg: null,
+		error: redact(detail, secretValues)
+	};
 }

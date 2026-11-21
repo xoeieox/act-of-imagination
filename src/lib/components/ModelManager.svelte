@@ -31,6 +31,14 @@
 	let secret = $state('');
 	let tokenCap = $state('');
 	let removeKey = $state(false);
+	let advancedOpen = $state(false);
+	let advancedTouched = $state(false);
+	let authMode = $state('bearer');
+	let extraLines = $state('');
+	let userAgent = $state('');
+	let removeExtra = $state(false);
+	/** @type {{authMode?: string, extraHeaderNames?: string[], hasUserAgent?: boolean}|null} */
+	let editRow = $state(null);
 	let testing = $state(false);
 	/** @type {{ok:boolean, verdict:string}|null} */
 	let verdict = $state(null);
@@ -50,8 +58,25 @@
 		return /^https?:\/\//i.test(v);
 	}
 
+	/** Advanced-auth section state (aoi-advanced-auth-v0): collapsed by
+	 * default; values are user-typed only. The server never ships stored
+	 * header/UA VALUES back (Kyma catalog rule): the edit form renders the
+	 * NAMES with masked values from the masked catalog hints
+	 * {authMode?, extraHeaderNames?, hasUserAgent?}; blank = the stored value
+	 * is preserved, the remove checkbox clears them explicitly. */
+	function resetAdvanced() {
+		advancedOpen = false;
+		advancedTouched = false;
+		authMode = 'bearer';
+		extraLines = '';
+		userAgent = '';
+		removeExtra = false;
+		editRow = null;
+	}
+
 	function openAdd() {
 		form = { mode: 'add' };
+		resetAdvanced();
 		label = '';
 		endpoint = '';
 		modelId = '';
@@ -64,6 +89,9 @@
 
 	function openEdit(row) {
 		form = { mode: 'edit', key: row.key };
+		resetAdvanced();
+		editRow = row;
+		authMode = row.authMode === 'raw' ? 'raw' : 'bearer';
 		label = row.label;
 		// The server never ships endpoint values back (catalog rule): blank
 		// fields on save mean "keep the stored value"; keyLast4 confirms
@@ -90,13 +118,67 @@
 		} else if (secret !== '') {
 			body.apiKey = secret;
 		}
+		// Advanced auth (aoi-advanced-auth-v0): fields ship only when the
+		// section was actually engaged, so a plain edit never re-writes the
+		// stored auth config. Blank = "keep the stored value" (server-side
+		// contract); the remove checkbox clears via explicit {} / ''.
+		const wantsAdvanced =
+			advancedTouched ||
+			authMode !== 'bearer' ||
+			extraLines.trim() !== '' ||
+			userAgent.trim() !== '' ||
+			removeExtra;
+		if (wantsAdvanced) {
+			body.authMode = authMode;
+			if (removeExtra) {
+				body.extraHeaders = {};
+				body.userAgent = '';
+			} else {
+				if (extraLines.trim() !== '') {
+					const parsed = parseExtraHeaders();
+					if (parsed.error) {
+						notice = parsed.error;
+						return null;
+					}
+					body.extraHeaders = parsed.headers;
+				}
+				if (userAgent.trim() !== '') body.userAgent = userAgent.trim();
+			}
+		}
 		return body;
+	}
+
+	/** Parse `name: value` lines into {headers} or {error}. Names/values are
+	 * validated server-side (modelStore.validateEntry); this only rejects
+	 * lines without a colon so Test/Save never send obviously broken input. */
+	function parseExtraHeaders() {
+		/** @type {Record<string,string>} */
+		const headers = {};
+		for (const rawLine of extraLines.split('\n')) {
+			const line = rawLine.trim();
+			if (line === '') continue;
+			const idx = line.indexOf(':');
+			const name = idx === -1 ? '' : line.slice(0, idx).trim();
+			const value = idx === -1 ? '' : line.slice(idx + 1).trim();
+			if (name === '' || value === '') return { error: 'extra header lines must be "name: value"' };
+			headers[name] = value;
+		}
+		return { headers };
 	}
 
 	async function runTest() {
 		if (!endpointOk(endpoint) || modelId.trim() === '') {
 			notice = 'Enter the base URL and model id to test.';
 			return;
+		}
+		let advancedExtra = null;
+		if (!removeExtra && extraLines.trim() !== '') {
+			const parsed = parseExtraHeaders();
+			if (parsed.error) {
+				notice = parsed.error;
+				return;
+			}
+			advancedExtra = parsed.headers;
 		}
 		testing = true;
 		verdict = null;
@@ -109,7 +191,10 @@
 					baseUrl: endpoint.trim(),
 					model: modelId.trim(),
 					...(secret !== '' ? { apiKey: secret } : {}),
-					...(tokenCap.trim() === '' ? {} : { maxTokens: Number(tokenCap) })
+					...(tokenCap.trim() === '' ? {} : { maxTokens: Number(tokenCap) }),
+					...(authMode !== 'bearer' ? { authMode } : {}),
+					...(advancedExtra ? { extraHeaders: advancedExtra } : {}),
+					...(userAgent.trim() !== '' ? { userAgent: userAgent.trim() } : {})
 				})
 			});
 			const data = await res.json();
@@ -137,7 +222,9 @@
 
 	async function save(status) {
 		notice = null;
-		const body = { ...payload(), status };
+		const fields = payload();
+		if (!fields) return; // client-side validation error already in `notice`
+		const body = { ...fields, status };
 		try {
 			const url =
 				form?.mode === 'edit' ? `/api/models/${encodeURIComponent(form.key)}` : '/api/models';
@@ -218,6 +305,17 @@
 							{/if}
 							{#if row.hasKey}
 								<span class="text-[10px] text-silver-400/60">key ••{row.keyLast4 || '****'}</span>
+							{/if}
+							{#if row.authMode === 'raw'}
+								<span
+									id={`aoi-mm-chip-raw-${row.key}`}
+									class="text-[10px] uppercase tracking-wider text-sky-300/70">raw</span
+								>
+							{/if}
+							{#if row.extraHeaderNames?.length || row.hasUserAgent}
+								<span id={`aoi-mm-chip-adv-${row.key}`} class="text-[10px] text-silver-400/60"
+									>adv</span
+								>
 							{/if}
 						</span>
 						<span class="flex gap-2 shrink-0">
@@ -306,6 +404,74 @@
 			placeholder="4096"
 			inputmode="numeric"
 		/>
+		<button
+			id="aoi-mm-advanced-toggle"
+			onclick={() => (advancedOpen = !advancedOpen)}
+			class="flex w-full items-center justify-between py-1 mb-1 text-xs uppercase tracking-widest text-silver-400 hover:text-silver-200 transition-colors"
+		>
+			<span>Advanced auth</span>
+			<span id="aoi-mm-advanced-state">{advancedOpen ? '−' : '+'}</span>
+		</button>
+		{#if advancedOpen}
+			<div
+				id="aoi-mm-advanced"
+				class="mb-3 pl-2 border-l border-silver-400/15"
+				in:fade={{ duration: 200, easing: cubicOut }}
+			>
+				<label class="block text-xs text-silver-400 mb-1" for="aoi-mm-authmode">Auth mode</label>
+				<select
+					id="aoi-mm-authmode"
+					class="w-full bg-depth-900 text-silver-200 text-sm border border-silver-400/20 rounded-lg px-3 py-2 mb-2"
+					bind:value={authMode}
+					onchange={() => (advancedTouched = true)}
+				>
+					<option value="bearer">Bearer (default)</option>
+					<option value="raw">Raw key (no 'Bearer ' prefix)</option>
+				</select>
+				<label class="block text-xs text-silver-400 mb-1" for="aoi-mm-extheaders">
+					Extra headers (one per line, name: value)
+				</label>
+				{#if editRow?.extraHeaderNames?.length}
+					<ul id="aoi-mm-extheader-masks" class="mb-1">
+						{#each editRow.extraHeaderNames as name (name)}
+							<li id={`aoi-mm-extheader-mask-${name}`} class="text-[10px] text-silver-400/60">
+								{name}: •••••• (stored - type to replace)
+							</li>
+						{/each}
+					</ul>
+				{/if}
+				<textarea
+					id="aoi-mm-extheaders"
+					rows="2"
+					class="w-full bg-depth-900 text-silver-200 text-sm border border-silver-400/20 rounded-lg px-3 py-2 mb-2 font-mono"
+					bind:value={extraLines}
+					placeholder={'x-opencode-session: your-session-id'}
+					autocomplete="off"
+					oninput={() => (advancedTouched = true)}></textarea>
+				<label class="block text-xs text-silver-400 mb-1" for="aoi-mm-useragent">
+					User-Agent override (optional)
+				</label>
+				<input
+					id="aoi-mm-useragent"
+					class="w-full bg-depth-900 text-silver-200 text-sm border border-silver-400/20 rounded-lg px-3 py-2 mb-1"
+					bind:value={userAgent}
+					placeholder={form.mode === 'edit' ? '(stored value kept)' : 'MyApp/1.0 (optional)'}
+					autocomplete="off"
+					oninput={() => (advancedTouched = true)}
+				/>
+				{#if form.mode === 'edit'}
+					<label class="flex items-center gap-2 text-xs text-silver-400 mb-1">
+						<input id="aoi-mm-remove-extra" type="checkbox" bind:checked={removeExtra} />
+						remove stored headers &amp; user-agent
+					</label>
+					{#if editRow?.hasUserAgent}
+						<p id="aoi-mm-useragent-mask" class="text-[10px] text-silver-400/60 mb-1">
+							user-agent: •••••• (stored - type to replace)
+						</p>
+					{/if}
+				{/if}
+			</div>
+		{/if}
 
 		<div class="flex flex-wrap gap-2 mb-2">
 			<button

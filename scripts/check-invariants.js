@@ -245,6 +245,30 @@ report(
 	registryHits.join('; ') || `scanned ${i7Files.length} browser-reachable files`
 );
 
+// ---- I-8c: advanced-auth fields never named in /api/models* routes ----
+// (aoi-advanced-auth-v0, 2026-11-21): authMode / extraHeaders / userAgent are
+// auth-value fields in the same family as apiKey/baseUrl (I-8b): the route
+// files stay thin delegates and must not even name these fields, so no route
+// can ever serialize a header or UA value. Masking lives in modelStore.js
+// alone (attachMaskedAuth ships NAMES + flags only), locked by the sentinel
+// battery in src/routes/api/model-advanced-auth.test.js. Concatenated pattern
+// so this gate never self-matches (F-1 idiom).
+const AUTH_FIELD_RE = new RegExp(['auth', 'Mode|extra', 'Headers|user', 'Agent'].join(''), 'i');
+const authRouteFiles = files.filter((f) =>
+	/^src\/routes\/api\/models\/(?:[^/]+\/)?\+server\.js$/.test(f)
+);
+const authHits = [];
+for (const f of authRouteFiles) {
+	if (AUTH_FIELD_RE.test(read(f))) authHits.push(f);
+}
+if (authRouteFiles.length < 3)
+	authHits.push(`expected the 3 models routes, found ${authRouteFiles.length}`);
+report(
+	'I-8c /api/models* route sources never name the advanced-auth fields',
+	authHits.length === 0,
+	authHits.join(', ') || 'advanced auth stays inside modelStore (thin-delegate routes)'
+);
+
 // ---- output ----
 for (const r of results) {
 	console.log(`${r.ok ? 'PASS' : 'FAIL'}  ${r.name}  (${r.detail})`);
