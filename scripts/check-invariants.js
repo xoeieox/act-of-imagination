@@ -172,6 +172,41 @@ if (existsSync(clientOut)) {
 	});
 }
 
+// ---- I-7: no direct crypto.randomUUID in browser-reachable sources ----
+// aoi-uuidfix 2026-11-21: crypto.randomUUID exists only in secure contexts;
+// the app is routinely served on a plain-http tailnet origin where the bare
+// call is undefined and crashed arrangement creation. All client id-gen
+// goes through newId() in src/lib/uuid.js (aoi-fix 2026-11-17 doctrine).
+// Browser-reachable scope per spec: src/routes/+page.svelte,
+// src/lib/components/**, src/lib/*.js, src/lib/stores/**. Tests are exempt
+// (same carve-out as other scans); src/lib/uuid.js is the sanctioned home.
+// The regex is built from parts so this gate never self-matches (F-1 idiom).
+const UUID_DIRECT_RE = new RegExp(
+	['cry', 'pto\\s*(?:\\?)?\\.\\s*random', 'UUID', '|ms', 'Crypto'].join('')
+);
+const I7_SCOPES = [
+	/^src\/routes\/\+page\.svelte$/,
+	/^src\/lib\/components\//,
+	/^src\/lib\/[^/]+\.js$/,
+	/^src\/lib\/stores\//
+];
+const i7Files = files.filter(
+	(f) =>
+		f.startsWith('src/') &&
+		!isTest(f) &&
+		f !== 'src/lib/uuid.js' &&
+		I7_SCOPES.some((r) => r.test(f))
+);
+const uuidHits = [];
+for (const f of i7Files) {
+	if (UUID_DIRECT_RE.test(read(f))) uuidHits.push(f);
+}
+report(
+	'I-7 no direct crypto.randomUUID in browser-reachable sources (client id-gen via newId)',
+	uuidHits.length === 0,
+	uuidHits.join('; ') || `scanned ${i7Files.length} browser-reachable files`
+);
+
 // ---- output ----
 for (const r of results) {
 	console.log(`${r.ok ? 'PASS' : 'FAIL'}  ${r.name}  (${r.detail})`);
