@@ -17,6 +17,7 @@
 	import AssemblyTimeline from '$lib/components/AssemblyTimeline.svelte';
 	import IterationComparison from '$lib/components/IterationComparison.svelte';
 	import LaneGate from '$lib/components/LaneGate.svelte';
+	import { modelStore } from '$lib/stores/model.js';
 
 	// Honest first run (F-3): lane configuration state from the server load -
 	// rendered into the initial HTML with zero API fetch.
@@ -129,7 +130,10 @@
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify({
 					messages: $session.messages,
-					cards: $session.cards
+					cards: $session.cards,
+					// aoi-model-selector-v0: persisted selection when set;
+					// byte-identical body when unset (lane default).
+					...modelStore.requestField()
 				})
 			});
 

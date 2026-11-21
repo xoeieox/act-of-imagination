@@ -140,7 +140,11 @@ report(
 	leakHits.join(', ') || 'no client-side import of server modules'
 );
 
-// ---- I-6b: AOI_LLM_ absent from client bundle output (post-build) ----
+// ---- I-6b: SENSITIVE_ENV_STRINGS absent from client bundle output (post-build) ----
+// aoi-model-selector-v0: the token set now covers the lane env family AND
+// the registry env name (AOI_MODELS_ + JSON) - neither may ever appear in
+// shipped client bytes.
+const SENSITIVE_ENV_STRINGS = ['AOI_' + 'LLM_', 'AOI_MODELS_' + 'JSON'];
 const clientOut = path.join(ROOT, '.svelte-kit/output/client');
 if (existsSync(clientOut)) {
 	const walk = (dir) => {
@@ -155,22 +159,42 @@ if (existsSync(clientOut)) {
 	const bundleHits = [];
 	for (const p of walk(clientOut)) {
 		if (!/\.(js|html|json)$/.test(p)) continue;
-		if (readFileSync(p, 'utf8').includes('AOI_LLM_')) {
-			bundleHits.push(path.relative(ROOT, p));
+		const text = readFileSync(p, 'utf8');
+		for (const token of SENSITIVE_ENV_STRINGS) {
+			if (text.includes(token)) bundleHits.push(`${path.relative(ROOT, p)}: ${token}`);
 		}
 	}
 	report(
-		"I-6b no 'AOI_LLM_' strings in .svelte-kit/output/client",
+		`I-6b no ${SENSITIVE_ENV_STRINGS.map((t) => `'${t}'`).join('/')} strings in .svelte-kit/output/client`,
 		bundleHits.length === 0,
 		bundleHits.join(', ') || 'client bundle clean of env var names'
 	);
 } else {
 	results.push({
-		name: "I-6b client-bundle scan ('AOI_LLM_')",
+		name: `I-6b client-bundle scan (${SENSITIVE_ENV_STRINGS.join('/')})`,
 		ok: true,
 		detail: 'skipped - no .svelte-kit/output/client yet; run after `npm run build`'
 	});
 }
+
+// ---- I-8: model-registry invariants (aoi-model-selector-v0, 2026-11-21) ----
+// Kyma catalog rule, made mechanical. I-8a (browser-reachable sources may
+// not even name the registry env var) runs below, after the I-7 scan set
+// (i7Files) is defined. I-8b:
+//  the catalog route carries only {key,label}: its source must not
+//  mention the entry-only fields at all.
+const catalogRouteFiles = files.filter((f) => /^src\/routes\/api\/models\/\+server\.js$/.test(f));
+const catalogFieldRe = new RegExp(['ap', 'iKey', '|base', 'Url'].join(''), 'i');
+const catalogHits = [];
+for (const f of catalogRouteFiles) {
+	if (catalogFieldRe.test(read(f))) catalogHits.push(f);
+}
+if (catalogRouteFiles.length === 0) catalogHits.push('models route missing');
+report(
+	'I-8b /api/models route source mentions neither apiKey nor baseUrl',
+	catalogHits.length === 0,
+	catalogHits.join(', ') || 'catalog ships {key,label} only'
+);
 
 // ---- I-7: no direct crypto.randomUUID in browser-reachable sources ----
 // aoi-uuidfix 2026-11-21: crypto.randomUUID exists only in secure contexts;
@@ -205,6 +229,20 @@ report(
 	'I-7 no direct crypto.randomUUID in browser-reachable sources (client id-gen via newId)',
 	uuidHits.length === 0,
 	uuidHits.join('; ') || `scanned ${i7Files.length} browser-reachable files`
+);
+
+// ---- I-8a: registry env name never appears in browser-reachable sources ----
+// (aoi-model-selector-v0; reuses the I-7 scan set, concatenated pattern
+// so this gate never self-matches - same idiom as I-7/F-1.)
+const REGISTRY_ENV_RE = new RegExp(['AOI', '_MODELS_', 'JSON'].join(''));
+const registryHits = [];
+for (const f of i7Files) {
+	if (REGISTRY_ENV_RE.test(read(f))) registryHits.push(f);
+}
+report(
+	'I-8a browser-reachable sources never name the model registry env var',
+	registryHits.length === 0,
+	registryHits.join('; ') || `scanned ${i7Files.length} browser-reachable files`
 );
 
 // ---- output ----

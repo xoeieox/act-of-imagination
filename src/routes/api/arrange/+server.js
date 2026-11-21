@@ -1,5 +1,6 @@
 import { json } from '@sveltejs/kit';
 import { chat as laneChat, LaneUpstreamError, laneErrorShape } from '$lib/server/lane.js';
+import { resolveModelSelection } from '$lib/server/modelRegistry.js';
 import { buildArrangeMessages } from '$lib/server/arrange-prompt.js';
 import { SYSTEM_CONTEXTS, getSystemContext } from '$lib/data/contexts.js';
 
@@ -17,7 +18,15 @@ const LEGACY_CONTEXT_PROMPTS = {
 
 export async function POST({ request }) {
 	try {
-		const { cards, slots, context } = await request.json();
+		const { cards, slots, context, modelKey } = await request.json();
+
+		// Model selector (aoi-model-selector-v0): validated server-side
+		// before any outbound fetch; unknown key / malformed registry = 400,
+		// never a silent fallback. Absent = today's exact lane posture.
+		const selection = resolveModelSelection(modelKey);
+		if (selection.error) {
+			return json(selection.error.body, { status: selection.error.status });
+		}
 
 		// Client sends `slots` (3 free slots, nulls allowed); `cards` remains
 		// the legacy shape (plain array, filled left to right).
@@ -52,7 +61,8 @@ export async function POST({ request }) {
 			// Budget must cover reasoning_content plus the narrative itself
 			// on thinking lanes (aoi-fix 2026-11-17). AOI_LLM_ARRANGE_MAX_TOKENS
 			// still wins per the lane table.
-			maxTokens: 8192
+			maxTokens: 8192,
+			modelOverride: selection.entry
 		});
 
 		// Whitespace-only narrative counts as none (aoi-fix 2026-11-17).

@@ -1,5 +1,6 @@
 import { json } from '@sveltejs/kit';
 import { chat as laneChat, laneErrorShape } from '$lib/server/lane.js';
+import { resolveModelSelection } from '$lib/server/modelRegistry.js';
 
 // Tool definitions for card formation
 const TOOLS = [
@@ -114,7 +115,16 @@ You are having a real conversation. Be human, be curious, be present.`;
 
 export async function POST({ request }) {
 	try {
-		const { messages, cards } = await request.json();
+		const { messages, cards, modelKey } = await request.json();
+
+		// Model selector (aoi-model-selector-v0): the browser may name a
+		// registry entry; it is validated HERE, server-side, before any
+		// outbound fetch. Unknown key / malformed registry = 400, never a
+		// silent fallback. Absent selection = today's exact lane posture.
+		const selection = resolveModelSelection(modelKey);
+		if (selection.error) {
+			return json(selection.error.body, { status: selection.error.status });
+		}
 
 		// Format messages for the lane, filtering out empty content
 		const formattedMessages = messages
@@ -157,7 +167,8 @@ export async function POST({ request }) {
 		const result = await laneChat('chat', {
 			messages: baseMessages,
 			tools: TOOLS,
-			maxTokens: 8192
+			maxTokens: 8192,
+			modelOverride: selection.entry
 		});
 
 		// Process the response - extract text and tool calls.
@@ -228,7 +239,10 @@ export async function POST({ request }) {
 			const continuedResult = await laneChat('chat', {
 				messages: turnMessages,
 				tools: TOOLS,
-				maxTokens: 8192
+				maxTokens: 8192,
+				// the selection rides the continuation loop too - every turn
+				// of one request lands on the same endpoint
+				modelOverride: selection.entry
 			});
 
 			// Extract text from continued response (whitespace-only does not count)
