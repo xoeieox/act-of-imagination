@@ -15,7 +15,12 @@
 
 export const MODEL_STORAGE_KEY = 'aoi-model-v1';
 
-/** Keep only {key,label} string pairs; dedupe by key; drop garbage. */
+/**
+ * Keep only catalog rows: {key,label} strings plus the MASKED metadata the
+ * manager UI may render (source, status, hasKey, keyLast4 - last 4 chars
+ * at most, invariant I-9). Anything else (endpoint fields, key values,
+ * garbage) is dropped client-side exactly as strictly as the server ships.
+ */
 export function sanitizeModelCatalog(raw) {
 	if (!Array.isArray(raw)) return [];
 	const out = [];
@@ -25,7 +30,14 @@ export function sanitizeModelCatalog(raw) {
 		const key = typeof item.key === 'string' ? item.key.trim() : '';
 		const label = typeof item.label === 'string' ? item.label.trim() : '';
 		if (!key || !label || seen.has(key)) continue;
-		out.push({ key, label });
+		const row = { key, label };
+		if (item.source === 'operator' || item.source === 'user') row.source = item.source;
+		if (item.status === 'healthy' || item.status === 'draft') row.status = item.status;
+		if (item.hasKey === true) row.hasKey = true;
+		if (typeof item.keyLast4 === 'string' && /^[A-Za-z0-9._-]{1,4}$/.test(item.keyLast4)) {
+			row.keyLast4 = item.keyLast4;
+		}
+		out.push(row);
 		seen.add(key);
 	}
 	return out;

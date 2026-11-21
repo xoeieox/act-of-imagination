@@ -35,8 +35,16 @@ const ENV_KEYS = [
 	'AOI_LLM_ARRANGE_MODEL',
 	'AOI_LLM_SYNOPSIS_BASE_URL',
 	'AOI_LLM_SYNOPSIS_MODEL',
-	'AOI_MODELS_JSON'
+	'AOI_MODELS_JSON',
+	'AOI_MODEL_STORE_DIR',
+	'AOI_OPERATOR_MODELS_FILE',
+	'AOI_USER_MODELS_FILE'
 ];
+
+// Hermetic store posture: no operator/user file exists at this (bogus)
+// directory, so every test exercises exactly the file-absent code path
+// regardless of the machine running vitest.
+const HERMETIC_STORE_DIR = '/nonexistent-aoi-test-store';
 
 const saved = {};
 
@@ -45,6 +53,7 @@ function clearEnv() {
 		saved[key] = process.env[key];
 		delete process.env[key];
 	}
+	process.env.AOI_MODEL_STORE_DIR = HERMETIC_STORE_DIR;
 }
 
 function restoreEnv() {
@@ -130,7 +139,9 @@ describe('GET /api/models', () => {
 		const res = await modelsGET();
 		expect(res.status).toBe(200);
 		const text = await res.text();
-		expect(JSON.parse(text)).toEqual([{ key: 'reg-one', label: 'Registry One' }]);
+		expect(JSON.parse(text)).toEqual([
+			{ key: 'reg-one', label: 'Registry One', source: 'operator', hasKey: true }
+		]);
 		expect(text).not.toContain('registry-entry.invalid');
 		expect(text).not.toContain('registry-model-sentinel');
 		expect(text).not.toContain('registry-key-sentinel');
