@@ -37,6 +37,17 @@ export function sanitizeModelCatalog(raw) {
 		if (typeof item.keyLast4 === 'string' && /^[A-Za-z0-9._-]{1,4}$/.test(item.keyLast4)) {
 			row.keyLast4 = item.keyLast4;
 		}
+		// Masked advanced-auth hints (aoi-advanced-auth-v0): the enum, header
+		// NAMES, and a boolean UA flag - VALUES can never arrive, and anything
+		// else is dropped exactly as strictly as the server ships.
+		if (item.authMode === 'raw' || item.authMode === 'bearer') row.authMode = item.authMode;
+		if (Array.isArray(item.extraHeaderNames)) {
+			const names = item.extraHeaderNames
+				.filter((n) => typeof n === 'string' && /^[a-z0-9][a-z0-9-]{0,63}$/.test(n))
+				.slice(0, 16);
+			if (names.length > 0) row.extraHeaderNames = names;
+		}
+		if (item.hasUserAgent === true) row.hasUserAgent = true;
 		out.push(row);
 		seen.add(key);
 	}

@@ -20,9 +20,13 @@
  * (the test surface). Never world-readable, never in git.
  *
  * Entry shape (both files): {key,label,baseUrl,model,apiKey?,maxTokens?}
- * plus optional {status:'healthy'|'draft'} on user rows. The server
- * validates shape and trims strings; other than that it stores what the
- * user typed, verbatim.
+ * plus optional {status:'healthy'|'draft'} on user rows, plus the
+ * advanced-auth trio (aoi-advanced-auth-v0): optional
+ * {authMode:'bearer'|'raw', extraHeaders:{name:value}, userAgent:'...'}
+ * - validated at save time; defaults preserve today's wire shape exactly
+ * (bearer, no extras, no UA override) and are OMITTED from stored rows.
+ * The server validates shape and trims strings; other than that it
+ * stores what the user typed, verbatim.
  *
  * Kyma catalog rule (extended): nothing serialized to a client ever
  * carries an apiKey VALUE or an operator row's endpoint - rows ship
@@ -41,6 +45,32 @@ import { randomBytes } from 'node:crypto';
 
 const KEY_RE = /^[a-z0-9][a-z0-9._-]{0,63}$/i;
 const STATUSES = new Set(['healthy', 'draft']);
+
+// Advanced auth (aoi-advanced-auth-v0, 2026-11-21): enum + header shape,
+// validated at SAVE time. Header names normalize to lowercase; values
+// travel verbatim server-side and never serialize to a client (I-8c).
+const AUTH_MODES = new Set(['bearer', 'raw']);
+const HEADER_NAME_RE = /^[a-z0-9][a-z0-9-]{0,63}$/;
+// Client-settable header names that must stay under lane control: the
+// Authorization header is governed by authMode; transport framing headers
+// break fetch when overridden.
+const FORBIDDEN_EXTRA_HEADERS = new Set([
+	'authorization',
+	'proxy-authorization',
+	'host',
+	'content-type',
+	'content-length',
+	'connection',
+	'keep-alive',
+	'te',
+	'trailer',
+	'transfer-encoding',
+	'upgrade',
+	'expect'
+]);
+const MAX_EXTRA_HEADERS = 16;
+const MAX_EXTRA_HEADER_VALUE = 512;
+const MAX_USER_AGENT = 200;
 
 function trimToValue(raw) {
 	if (raw === undefined || raw === null) return '';
@@ -79,7 +109,49 @@ export function validateEntry(item) {
 		maxTokens = parsed;
 	}
 
-	return { key, label, baseUrl, model, apiKey, maxTokens };
+	// --- advanced auth trio (aoi-advanced-auth-v0): validated HERE at save
+	// time (an unknown authMode is a 400 at save, never silently ignored at
+	// chat time - and a bad value inside a store file fails the whole store
+	// closed like any other malformed field). Defaults are OMITTED from the
+	// entry so a plain row stays byte-identical to the historic shape.
+	if (item.authMode !== undefined && item.authMode !== null && item.authMode !== '') {
+		if (typeof item.authMode !== 'string' || !AUTH_MODES.has(item.authMode)) return null;
+	}
+	const authMode = item.authMode === 'raw' ? 'raw' : undefined;
+
+	let extraHeaders = null;
+	if (item.extraHeaders !== undefined && item.extraHeaders !== null && item.extraHeaders !== '') {
+		if (typeof item.extraHeaders !== 'object' || Array.isArray(item.extraHeaders)) return null;
+		const pairs = Object.entries(item.extraHeaders);
+		if (pairs.length > MAX_EXTRA_HEADERS) return null;
+		const out = {};
+		for (const [rawName, rawValue] of pairs) {
+			const name = String(rawName).trim().toLowerCase();
+			if (!HEADER_NAME_RE.test(name)) return null;
+			if (FORBIDDEN_EXTRA_HEADERS.has(name)) return null;
+			if (typeof rawValue !== 'string') return null;
+			const value = rawValue.trim();
+			if (value === '' || value.length > MAX_EXTRA_HEADER_VALUE) return null;
+			out[name] = value;
+		}
+		if (Object.keys(out).length > 0) extraHeaders = out;
+	}
+
+	let userAgent = null;
+	if (item.userAgent !== undefined && item.userAgent !== null) {
+		if (typeof item.userAgent !== 'string') return null;
+		const candidate = trimToValue(item.userAgent);
+		if (candidate !== '') {
+			if (candidate.length > MAX_USER_AGENT) return null;
+			userAgent = candidate;
+		}
+	}
+
+	const entry = { key, label, baseUrl, model, apiKey, maxTokens };
+	if (authMode) entry.authMode = 'raw';
+	if (extraHeaders) entry.extraHeaders = extraHeaders;
+	if (userAgent) entry.userAgent = userAgent;
+	return entry;
 }
 
 /**
@@ -216,6 +288,20 @@ function keyLast4(apiKey) {
 }
 
 /**
+ * Masked advanced-auth hints for USER rows only (Kyma catalog rule
+ * extended, aoi-advanced-auth-v0): authMode ships only when 'raw' (the
+ * default stays byte-identical to the historic row shape), extra header
+ * NAMES may be echoed, their VALUES never; the UA ships as a boolean flag
+ * only. The manager UI renders masked values from these - the raw values
+ * never leave this module (invariant I-8c + sentinel battery).
+ */
+function attachMaskedAuth(row, out) {
+	if (row.authMode === 'raw') out.authMode = 'raw';
+	if (row.extraHeaders) out.extraHeaderNames = Object.keys(row.extraHeaders);
+	if (row.userAgent) out.hasUserAgent = true;
+}
+
+/**
  * The client-facing catalog (Kyma catalog rule): operator rows ship
  * {key,label,source}; user rows additionally {status,hasKey?,keyLast4?}.
  * Endpoint fields and key VALUES of stored rows never leave this module
@@ -235,6 +321,7 @@ export function registrySummary({ env = process.env } = {}) {
 					const last4 = keyLast4(e.apiKey);
 					if (last4) row.keyLast4 = last4;
 				}
+				attachMaskedAuth(e, row);
 			} else if (e.apiKey) {
 				row.hasKey = true;
 			}
@@ -307,7 +394,29 @@ export function normalizeUserRow(body, base = null) {
 				? base
 					? base.maxTokens
 					: null
-				: body.maxTokens
+				: body.maxTokens,
+		// Advanced auth follows the same blank-preserves-stored contract as
+		// every other field; an explicit empty object / empty string CLEARS
+		// (the UI's 'remove stored headers & user-agent'). A bad authMode is
+		// rejected by validateEntry below -> save-time 400.
+		authMode:
+			body.authMode === undefined || body.authMode === null || body.authMode === ''
+				? base
+					? base.authMode
+					: undefined
+				: body.authMode,
+		extraHeaders:
+			body.extraHeaders === undefined || body.extraHeaders === null
+				? base
+					? base.extraHeaders
+					: undefined
+				: body.extraHeaders,
+		userAgent:
+			body.userAgent === undefined || body.userAgent === null
+				? base
+					? base.userAgent
+					: undefined
+				: body.userAgent
 	};
 
 	if (!merged.key) merged.key = newGeneratedKey();
@@ -366,6 +475,9 @@ export function createUserRow(body, { env = process.env } = {}) {
 		model: keep.model,
 		apiKey: keep.apiKey,
 		maxTokens: keep.maxTokens,
+		...(keep.authMode ? { authMode: keep.authMode } : {}),
+		...(keep.extraHeaders ? { extraHeaders: keep.extraHeaders } : {}),
+		...(keep.userAgent ? { userAgent: keep.userAgent } : {}),
 		status: keep.status
 	});
 	try {
@@ -380,6 +492,7 @@ export function createUserRow(body, { env = process.env } = {}) {
 		const last4 = keyLast4(normalized.row.apiKey);
 		if (last4) out.keyLast4 = last4;
 	}
+	attachMaskedAuth(normalized.row, out);
 	return { status: 201, body: out };
 }
 
@@ -390,6 +503,7 @@ function userRowResult(row) {
 		const last4 = keyLast4(row.apiKey);
 		if (last4) out.keyLast4 = last4;
 	}
+	attachMaskedAuth(row, out);
 	return out;
 }
 
@@ -429,6 +543,9 @@ export function updateUserRow(key, body, { env = process.env } = {}) {
 			model: keep.model,
 			apiKey: keep.apiKey,
 			maxTokens: keep.maxTokens,
+			...(keep.authMode ? { authMode: keep.authMode } : {}),
+			...(keep.extraHeaders ? { extraHeaders: keep.extraHeaders } : {}),
+			...(keep.userAgent ? { userAgent: keep.userAgent } : {}),
 			status: keep.status
 		};
 	});
@@ -485,7 +602,12 @@ export function validateProbeShape(body) {
 			baseUrl: entry.baseUrl,
 			model: entry.model,
 			apiKey: entry.apiKey,
-			maxTokens: entry.maxTokens
+			maxTokens: entry.maxTokens,
+			// probe carries the FULL auth config so Test validates the
+			// exotic shape exactly as chat will send it (aoi-advanced-auth-v0)
+			...(entry.authMode ? { authMode: entry.authMode } : {}),
+			...(entry.extraHeaders ? { extraHeaders: entry.extraHeaders } : {}),
+			...(entry.userAgent ? { userAgent: entry.userAgent } : {})
 		}
 	};
 }
