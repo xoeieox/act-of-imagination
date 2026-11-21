@@ -121,9 +121,12 @@ describe('honest first run: no demo surface exists (OD-6)', () => {
 		expect(existsSync(path.resolve(routesRoot, 'demo'))).toBe(false);
 	});
 
-	it('dev presets are prod-blocked at the dev route load', () => {
+	it('dev presets are prod-blocked at the dev route load, fail-closed without the runtime opt-in', () => {
 		const devLoad = readFileSync(path.resolve(import.meta.dirname, 'dev/+page.server.js'), 'utf8');
-		expect(devLoad).toContain('if (!dev)');
+		// Gate is server-side and fails closed: dev builds pass, production
+		// builds only the exact operator flag AOI_DEV_PANEL=1 (aoi-dev-panel-flag).
+		expect(devLoad).toContain('if (!dev');
+		expect(devLoad).toContain("process.env.AOI_DEV_PANEL !== '1'");
 		expect(devLoad).toContain('error(404');
 	});
 });
