@@ -4,6 +4,7 @@
 	import AssemblySave from './AssemblySave.svelte';
 	import { SYSTEM_CONTEXTS } from '$lib/data/contexts.js';
 	import { assemblies, initAssemblies } from '$lib/supabase/assemblies.js';
+	import { arrangements } from '$lib/arrangements.js';
 	import { onMount } from 'svelte';
 
 	// Props for loading an existing assembly
@@ -18,12 +19,21 @@
 	let showSaveModal = $state(false);
 	let savedMessage = $state(null);
 
+	// Witnessed arrangement persisted with its reflections (design :300-306)
+	let savedArrangementId = $state(null);
+	let reflectionDraft = $state('');
+	let reflectionSaved = $state(false);
+	let currentArrangement = $derived(
+		savedArrangementId ? $arrangements.arrangements.find((a) => a.id === savedArrangementId) : null
+	);
+
 	// Timeline state
 	let timelineLoaded = $state(false);
 	let filterCardIds = $state(new Set());
 	let expandedIterationId = $state(null);
 
 	onMount(async () => {
+		arrangements.init();
 		await initAssemblies();
 		timelineLoaded = true;
 	});
@@ -206,6 +216,17 @@
 	function clearSlots() {
 		slots = [null, null, null];
 		generatedNarrative = '';
+		savedArrangementId = null;
+		reflectionDraft = '';
+		reflectionSaved = false;
+	}
+
+	function keepReflection() {
+		if (!currentArrangement || !reflectionDraft.trim()) return;
+		arrangements.addReflection(currentArrangement.id, reflectionDraft);
+		reflectionDraft = '';
+		reflectionSaved = true;
+		setTimeout(() => (reflectionSaved = false), 2500);
 	}
 
 	function handleContextSelect(context) {
@@ -224,7 +245,7 @@
 				method: 'POST',
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify({
-					cards: slots.filter((s) => s !== null),
+					slots: slots,
 					context: selectedContext // Pass full context object
 				})
 			});
@@ -235,6 +256,18 @@
 
 			const data = await response.json();
 			generatedNarrative = data.narrative;
+
+			// Persist the witnessed arrangement; reflections attach to it later
+			if (generatedNarrative) {
+				const saved = arrangements.save({
+					slots,
+					context: selectedContext,
+					narrative: generatedNarrative
+				});
+				savedArrangementId = saved.id;
+				reflectionDraft = '';
+				reflectionSaved = false;
+			}
 		} catch (err) {
 			error = err.message;
 		} finally {
@@ -609,6 +642,47 @@
 								<p class="text-center text-emerald-400 text-sm mt-3 animate-rise">
 									{savedMessage}
 								</p>
+							{/if}
+
+							<!-- Reflections on this witnessed arrangement -->
+							{#if currentArrangement}
+								<div class="mt-4 border-t border-silver-400/10 pt-4">
+									<h4 class="text-xs text-silver-400 uppercase tracking-wider mb-2">
+										What did you see?
+									</h4>
+									{#if currentArrangement.reflections?.length > 0}
+										<ul class="space-y-2 mb-3">
+											{#each currentArrangement.reflections as note, ni (ni)}
+												<li
+													class="text-silver-300 text-sm font-serif leading-relaxed bg-depth-800/50 rounded-lg px-3 py-2"
+												>
+													{note}
+												</li>
+											{/each}
+										</ul>
+									{/if}
+									<div class="flex gap-2">
+										<textarea
+											bind:value={reflectionDraft}
+											placeholder="Note what moved you..."
+											rows="2"
+											class="flex-1 bg-depth-800/50 border border-silver-400/10 rounded-lg px-3 py-2 text-sm text-silver-200 placeholder-silver-400/40 focus:border-silver-400/30 focus:outline-none resize-y font-serif"
+										></textarea>
+										<button
+											onclick={keepReflection}
+											disabled={!reflectionDraft.trim()}
+											class="px-4 py-2 rounded-lg text-sm self-end transition-all duration-200
+												{reflectionDraft.trim()
+												? 'bg-silver-400/10 text-silver-200 border border-silver-400/30 hover:bg-silver-400/20'
+												: 'bg-depth-700 text-silver-400/40 border border-silver-400/10 cursor-not-allowed'}"
+										>
+											Keep
+										</button>
+									</div>
+									{#if reflectionSaved}
+										<p class="text-emerald-400/80 text-xs mt-1 animate-rise"> Kept. </p>
+									{/if}
+								</div>
 							{/if}
 						</div>
 					{/if}

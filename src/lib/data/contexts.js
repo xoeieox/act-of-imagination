@@ -1,81 +1,47 @@
 /**
  * System contexts - situational lenses for examining personal material
  *
- * These are the default contexts available to all users.
- * Users can also create their own contexts through conversation.
+ * The four fixed contexts from the design (Act-of-Imagination-Design.md,
+ * Arrangement Mode UI: [meeting / conflict / discovery / transformation]).
+ * Erah's ruling (2026-11-21, AS-DESIGNED): the system contexts are exactly
+ * these four - no user-built condition system.
  */
 
 export const SYSTEM_CONTEXTS = [
 	{
-		id: 'system-crisis',
-		name: 'crisis',
-		label: 'Crisis',
-		description: 'A moment of urgency and decision',
+		id: 'system-meeting',
+		name: 'meeting',
+		label: 'Meeting',
+		description: 'First contact between elements',
 		prompt:
-			'These elements are caught in a moment of crisis. What breaks, what holds, what is revealed under pressure?',
-		isSystem: true
-	},
-	{
-		id: 'system-solitude',
-		name: 'solitude',
-		label: 'Solitude',
-		description: 'Alone with what matters',
-		prompt:
-			'These elements meet in solitude, away from others. What emerges when there is no audience, no performance required?',
-		isSystem: true
-	},
-	{
-		id: 'system-community',
-		name: 'community',
-		label: 'Community',
-		description: 'Among others, seeking belonging',
-		prompt:
-			'These elements exist within a community. How do they relate to belonging, to being seen, to finding their place among others?',
-		isSystem: true
-	},
-	{
-		id: 'system-transition',
-		name: 'transition',
-		label: 'Transition',
-		description: 'Between what was and what will be',
-		prompt:
-			'These elements are in transition. What is being left behind? What is approaching? What persists through the change?',
-		isSystem: true
-	},
-	{
-		id: 'system-creation',
-		name: 'creation',
-		label: 'Creation',
-		description: 'Making something new',
-		prompt:
-			'These elements participate in an act of creation. What wants to be born? What must be given? What emerges from their collaboration?',
-		isSystem: true
-	},
-	{
-		id: 'system-loss',
-		name: 'loss',
-		label: 'Loss',
-		description: 'Facing absence and grief',
-		prompt:
-			'These elements are touched by loss. What has been taken away? What remains? How do they hold the absence?',
-		isSystem: true
-	},
-	{
-		id: 'system-waiting',
-		name: 'waiting',
-		label: 'Waiting',
-		description: 'Suspended in anticipation',
-		prompt:
-			'These elements are waiting. For what? What happens in the stillness? What stirs beneath patience?',
+			'These elements are encountering each other for the first time. What happens when they meet? What do they recognize in each other?',
 		isSystem: true
 	},
 	{
 		id: 'system-conflict',
 		name: 'conflict',
 		label: 'Conflict',
-		description: 'Forces in opposition',
+		description: 'Forces in tension',
 		prompt:
-			'These elements are in conflict with each other. What is the nature of their opposition? What would resolution require?',
+			'These elements are in tension with each other. What is the nature of their conflict? What does each want that the other resists?',
+		isSystem: true
+	},
+	{
+		id: 'system-discovery',
+		name: 'discovery',
+		label: 'Discovery',
+		description: 'Something revealed between elements',
+		prompt:
+			'Something is being revealed between these elements. What hidden truth emerges when they are placed together? What was waiting to be seen?',
+		isSystem: true
+	},
+	{
+		id: 'system-transformation',
+		name: 'transformation',
+		label: 'Transformation',
+		description: 'What is changing, what is emerging',
+		prompt:
+			'One or more of these elements is changing the others. What transformation is occurring? What is being left behind, and what is emerging?',
 		isSystem: true
 	}
 ];
