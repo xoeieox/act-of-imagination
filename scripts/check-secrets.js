@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * Secret-scrub gate for aoi-repo-polish-v0 leg 2 (spec sec 5.1, I-4, DoD #5).
+ * Secret-scrub gate (I-4).
  *
  *  A. Tracked .env family: exactly one allowed member, `.env.example`.
  *     Real credential files stay untracked on operator machines; a tracked

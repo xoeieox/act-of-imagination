@@ -1,7 +1,7 @@
 /**
- * Draft save after a failed connection test (Erah bug, 2026-11-21).
+ * Draft save after a failed connection test (fixed 2026-11-21).
  *
- * Repro Erah hit: fill the add-model form with an endpoint that fails
+ * Repro: fill the add-model form with an endpoint that fails
  * the probe, click Test, then 'Save as draft' - the only live button
  * was Cancel. Root cause was the component gate `canSaveDraft =
  * $derived(formValid && verdict === null)`: running any test sets a

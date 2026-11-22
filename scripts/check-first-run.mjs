@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * Honest-first-run boot check (aoi-repo-polish-v0 leg 2, DoD #9).
+ * Honest-first-run boot check.
  *
  * Bounded, foreground-only: boots the BUILT app (adapter output via the
  * SvelteKit server entry) with the AOI_LLM_* environment stripped, fetches

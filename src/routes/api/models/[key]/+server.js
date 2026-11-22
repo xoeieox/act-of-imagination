@@ -1,5 +1,5 @@
 /**
- * User-row edit/delete endpoint (aoi-model-manager-v0, 2026-11-21).
+ * User-row edit/delete endpoint (2026-11-21).
  *
  * PATCH  /api/models/{key} - update a USER row (blank/absent fields
  *          preserve the stored value; an explicit empty api-key field

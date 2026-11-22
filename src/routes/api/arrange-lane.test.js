@@ -1,5 +1,5 @@
 /**
- * Arrange route lane tests (aoi-arrangement-play-v0).
+ * Arrange route lane tests.
  *
  * Route-level lock for the ARRANGE lane reuse: with a per-lane env override
  * the route must call the arrange endpoint (not the shared default), send

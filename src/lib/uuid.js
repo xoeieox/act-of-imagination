@@ -1,5 +1,5 @@
 /**
- * Client-safe id generation (aoi-fix 2026-11-17).
+ * Client-safe id generation.
  *
  * crypto.randomUUID exists only in secure contexts - the app is routinely
  * opened over a plain http LAN address, where it is undefined and a bare

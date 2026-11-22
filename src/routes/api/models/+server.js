@@ -1,10 +1,10 @@
 /**
- * Model catalog + user-row CRUD (aoi-model-manager-v0, 2026-11-21).
+ * Model catalog + user-row CRUD (2026-11-21).
  *
  * GET  /api/models -> the combined registry as catalog rows ONLY:
  *      {key,label,source} for operator rows, plus {status,hasKey?,
  *      keyLast4?} for user rows. Endpoint fields, model ids and key
- *      VALUES never ship (Kyma catalog rule - locked by I-8b/I-9 and the
+ *      VALUES never ship (catalog privacy rule - locked by I-8b/I-9 and the
  *      sentinel battery in src/routes/api/model-manager.test.js). All
  *      listing and mutation logic lives in $lib/server/modelStore.js;
  *      this route stays a thin delegate.

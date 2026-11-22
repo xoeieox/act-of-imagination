@@ -1,5 +1,5 @@
 /**
- * Honest first run (aoi-repo-polish-v0 leg 2, sec 5.6 / F-3, DoD #9).
+ * Honest first run.
  *
  * A fresh clone with zero .env must NOT discover the missing lane as a
  * failed fetch: the shell's server load resolves the lane table at render
@@ -124,7 +124,7 @@ describe('honest first run: no demo surface exists (OD-6)', () => {
 	it('dev presets are prod-blocked at the dev route load, fail-closed without the runtime opt-in', () => {
 		const devLoad = readFileSync(path.resolve(import.meta.dirname, 'dev/+page.server.js'), 'utf8');
 		// Gate is server-side and fails closed: dev builds pass, production
-		// builds only the exact operator flag AOI_DEV_PANEL=1 (aoi-dev-panel-flag).
+		// builds only the exact operator flag AOI_DEV_PANEL=1.
 		expect(devLoad).toContain('if (!dev');
 		expect(devLoad).toContain("process.env.AOI_DEV_PANEL !== '1'");
 		expect(devLoad).toContain('error(404');

@@ -3,7 +3,7 @@
  *
  * Browser-safe and dependency-free: the /api/models catalog can only ever
  * arrive as {key,label} pairs (the server strips everything else -
- * Kyma catalog rule), and sanitizeModelCatalog hardens the client against
+ * catalog privacy rule), and sanitizeModelCatalog hardens the client against
  * malformed restores the same way session.js does its localStorage reads.
  *
  * The degrade rule lives here: a stored selection that is no longer in the
@@ -37,7 +37,7 @@ export function sanitizeModelCatalog(raw) {
 		if (typeof item.keyLast4 === 'string' && /^[A-Za-z0-9._-]{1,4}$/.test(item.keyLast4)) {
 			row.keyLast4 = item.keyLast4;
 		}
-		// Masked advanced-auth hints (aoi-advanced-auth-v0): the enum, header
+		// Masked advanced-auth hints: the enum, header
 		// NAMES, and a boolean UA flag - VALUES can never arrive, and anything
 		// else is dropped exactly as strictly as the server ships.
 		if (item.authMode === 'raw' || item.authMode === 'bearer') row.authMode = item.authMode;

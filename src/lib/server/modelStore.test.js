@@ -1,5 +1,5 @@
 /**
- * Model store tests (aoi-model-manager-v0, 2026-11-21).
+ * Model store tests (2026-11-21).
  *
  * The server-side file contract, on a real temp directory (fs):
  *   - atomicWriteJson: 0600 file, no temp residue, dir 0700;
@@ -10,7 +10,7 @@
  *   - create/update/delete: validation generic (never echoes input),
  *     operator rows immutable (403), unknown key 404, duplicate 409,
  *     masked keyLast4 (last 4 only), draft-vs-healthy status;
- *   - the Kyma catalog rule extended: NO summary or mutation response
+ *   - the catalog privacy rule extended: NO summary or mutation response
  *     ever contains a sentinel endpoint or key value;
  *   - resolveCombinedSelection answers from BOTH files (unknown 400).
  */

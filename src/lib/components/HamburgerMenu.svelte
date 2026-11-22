@@ -6,8 +6,8 @@
 	import { isAuthenticated, signOut } from '$lib/supabase/auth.js';
 	import { isSupabaseConfigured } from '$lib/supabase/client.js';
 	import ModelSelector from './ModelSelector.svelte';
-	// aoi-motion 2026-11-17: menu enters ~320ms, exits ~200ms (slide back a
-	// touch faster than it came out, per Erah).
+	// Menu enters ~320ms, exits ~200ms (slide back a
+	// touch faster than it came out).
 	import { fade, fly } from 'svelte/transition';
 	import { cubicOut, cubicIn } from 'svelte/easing';
 
@@ -275,6 +275,6 @@
 {/if}
 
 <style>
-	/* aoi-motion 2026-11-17: slide-in keyframes retired in favour of
+	/* Slide-in keyframes retired in favour of
 	   svelte in:/out:fly transitions (symmetric enter/exit). */
 </style>

@@ -162,7 +162,7 @@ export async function POST({ request }) {
 
 		// maxTokens is a default, not a cap: thinking lanes spend part of the
 		// budget on reasoning_content before emitting text or tool calls, so
-		// the budget must cover both (aoi-fix 2026-11-17; AOI_LLM_*_MAX_TOKENS
+		// the budget must cover both (AOI_LLM_*_MAX_TOKENS
 		// still wins per the lane table).
 		const result = await laneChat('chat', {
 			messages: baseMessages,

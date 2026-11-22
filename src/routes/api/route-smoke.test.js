@@ -1,5 +1,5 @@
 /**
- * Route smoke tests (aoi-repo-polish-v0 leg 2, sec 5.4 / DoD #8).
+ * Route smoke tests.
  *
  * All three API routes against a fake lane (canned OpenAI-compatible
  * responses at the fetch seam, zero network): the happy-path shape for each

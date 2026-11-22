@@ -1,4 +1,4 @@
-# Replay fixture (aoi-repo-polish-v0 leg 2, sec 5.4) - Kyma lore-book pattern:
+# Replay fixture - lore-book pattern:
 # canned OpenAI-compatible lane responses replay the /api/chat prompt assembly
 # and the tool-call -> cardEvents mapping, with zero network.
 # Driven by src/lib/__tests__/replay.test.js.

@@ -1,5 +1,5 @@
 /**
- * Advanced-auth battery (aoi-advanced-auth-v0, 2026-11-21).
+ * Advanced-auth battery (2026-11-21).
  *
  * Wire-shape + redaction contracts for the row-level auth fields
  * {authMode:'bearer'|'raw', extraHeaders:{name:value}, userAgent:'...'}:
@@ -7,9 +7,9 @@
  *     ignored at chat time); forbidden/duplicate names rejected;
  *   - raw mode ships the key VERBATIM (no 'Bearer ' prefix) and extra
  *     headers / UA ride every outbound request - asserted on the EXACT
- *     header objects the fetch stubs captured (OpenCode Go shape:
- *     raw Authorization + x-opencode-session + custom UA, Kyma
- *     investigation 2026-11-02; the chat POST is the leg that matters);
+ *     header objects the fetch stubs captured (raw-relay shape:
+ *     raw Authorization + x-opencode-session + custom UA; the chat
+ *     POST is the leg that matters);
  *   - masked serialization: extraHeader NAMES may ship to the client,
  *     header VALUES and the UA value never do (sentinels below);
  *   - the probe runs the row's FULL auth config (Test validates the
@@ -118,7 +118,7 @@ const CLIENT_VALUE = 'clie…ta-3';
 const UA_VALUE = 'aoi-go-agent-7';
 
 const EXOTIC = {
-	label: 'OpenCode Go (synthetic)',
+	label: 'Raw relay (synthetic)',
 	baseUrl: 'https://go-relay-sentinel.invalid/v1',
 	model: 'go-relay-model-sentinel',
 	apiKey: RAW_KEY,
@@ -279,7 +279,7 @@ describe('chat wire shape through a saved row (exact captured headers)', () => {
 			expect(chat).toBeTruthy();
 			expect(chat.url).toBe('https://go-relay-sentinel.invalid/v1/chat/completions');
 			const h = chat.init.headers;
-			// the EXACT headers OpenCode Go demands (Kyma investigation 2026-11-02):
+			// the EXACT headers the raw-relay shape demands:
 			expect(h.authorization).toBe(RAW_KEY);
 			expect(h.authorization.startsWith('Bearer')).toBe(false);
 			expect(h['x-opencode-session']).toBe(SESSION_VALUE);

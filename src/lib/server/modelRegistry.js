@@ -1,7 +1,6 @@
 /**
- * Server-only model registry facade (aoi-model-selector-v0, 2026-11-21;
- * upgraded to the file-backed store by aoi-model-manager-v0 the same day,
- * Erah-ratified design).
+ * Server-only model registry facade (2026-11-21; upgraded to the
+ * file-backed store the same day).
  *
  * The registry itself now lives in ./modelStore.js: an operator FILE
  * (~/.config/aoi/operator-models.json, agent/user-editable) plus a
@@ -11,7 +10,7 @@
  * API routes and the PR #9 tests:
  *
  *   - parseRegistry       - deprecated env-registry parser (re-exported)
- *   - registrySummary     - Kyma catalog rule listing (re-exported)
+ *   - registrySummary     - catalog privacy rule listing (re-exported)
  *   - resolveModelSelection - request-time resolution against the
  *     COMBINED registry (operator + user rows); unknown key / malformed
  *     store / wrong-typed selection = generic 400, never a silent

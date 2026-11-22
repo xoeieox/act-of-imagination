@@ -1,5 +1,5 @@
 /**
- * Arrangement availability (Erah ruling 2026-11-21).
+ * Arrangement availability (design ruling, 2026-11-21).
  *
  * "Normal use should have it be available without conditions and explains
  * that you need a certain amount of cards for use."

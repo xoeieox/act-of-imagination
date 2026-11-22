@@ -1,5 +1,5 @@
 /**
- * Arrangement Play prompt assembly (aoi-arrangement-play-v0).
+ * Arrangement Play prompt assembly.
  *
  * Pure module - no env, no fetch, no endpoints. Implements the design's
  * Arrangement Play Phase prompt (Act-of-Imagination-Design.md :335-348):

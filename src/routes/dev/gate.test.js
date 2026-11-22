@@ -1,5 +1,5 @@
 /**
- * Dev panel gate, production posture (aoi-dev-panel-flag, 2026-11-21).
+ * Dev panel gate, production posture (2026-11-21).
  *
  * With the server rendered like a production build ($app/environment dev
  * mocked false), the gate is fail-closed: only the exact AOI_DEV_PANEL=1

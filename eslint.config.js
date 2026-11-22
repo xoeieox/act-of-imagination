@@ -2,7 +2,7 @@ import js from '@eslint/js';
 import svelte from 'eslint-plugin-svelte';
 import globals from 'globals';
 
-// Minimal flat config (aoi-repo-polish-v0 leg 2, sec 5.5): the Svelte parser
+// Minimal flat config: the Svelte parser
 // + recommended baseline (not the opinionated rule set - no bikeshed),
 // js.recommended, the I-6 server-module import restriction, and prettier
 // compat. Formatting is prettier's job, not eslint's.

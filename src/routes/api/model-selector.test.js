@@ -1,12 +1,12 @@
 /**
- * Model selector route tests (aoi-model-selector-v0, 2026-11-21).
+ * Model selector route tests (2026-11-21).
  *
  * The three fail-closed contracts that live at the HTTP boundary, on a
  * fake lane (fetch stub, zero network) the way route-smoke.test.js does:
  *
  *   1. GET /api/models answers [{key,label}] ONLY - sentinel base url,
  *      model id and key VALUES must not appear anywhere in the response
- *      (Kyma catalog rule).
+ *      (catalog privacy rule).
  *   2. A modelKey the registry does not know is a 400 - before any fetch
  *      is attempted (the stub counts calls; an unknown key must reach the
  *      lane zero times, i.e. no silent fallback).

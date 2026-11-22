@@ -1,5 +1,5 @@
 /**
- * Honest first run (aoi-repo-polish-v0 leg 2, sec 5.6 / F-3).
+ * Honest first run.
  *
  * The app shell's server load resolves the env lanes and exposes their
  * configuration state STRUCTURALLY - a zero-.env boot renders the

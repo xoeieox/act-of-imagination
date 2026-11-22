@@ -1,5 +1,5 @@
 /**
- * Server-only model store (aoi-model-manager-v0, 2026-11-21, Erah-ratified).
+ * Server-only model store (2026-11-21).
  *
  * Two JSON files on the server, both 0600, both written atomically
  * (temp file + rename in the same directory):
@@ -21,14 +21,14 @@
  *
  * Entry shape (both files): {key,label,baseUrl,model,apiKey?,maxTokens?}
  * plus optional {status:'healthy'|'draft'} on user rows, plus the
- * advanced-auth trio (aoi-advanced-auth-v0): optional
+ * advanced-auth trio: optional
  * {authMode:'bearer'|'raw', extraHeaders:{name:value}, userAgent:'...'}
  * - validated at save time; defaults preserve today's wire shape exactly
  * (bearer, no extras, no UA override) and are OMITTED from stored rows.
  * The server validates shape and trims strings; other than that it
  * stores what the user typed, verbatim.
  *
- * Kyma catalog rule (extended): nothing serialized to a client ever
+ * Catalog privacy rule (extended): nothing serialized to a client ever
  * carries an apiKey VALUE or an operator row's endpoint - rows ship
  * {key,label,source,status?,hasKey?,keyLast4?}; user rows are the rows
  * THIS browser itself created, and even they expose only a masked
@@ -46,7 +46,7 @@ import { randomBytes } from 'node:crypto';
 const KEY_RE = /^[a-z0-9][a-z0-9._-]{0,63}$/i;
 const STATUSES = new Set(['healthy', 'draft']);
 
-// Advanced auth (aoi-advanced-auth-v0, 2026-11-21): enum + header shape,
+// Advanced auth (2026-11-21): enum + header shape,
 // validated at SAVE time. Header names normalize to lowercase; values
 // travel verbatim server-side and never serialize to a client (I-8c).
 const AUTH_MODES = new Set(['bearer', 'raw']);
@@ -109,7 +109,7 @@ export function validateEntry(item) {
 		maxTokens = parsed;
 	}
 
-	// --- advanced auth trio (aoi-advanced-auth-v0): validated HERE at save
+	// --- advanced auth trio: validated HERE at save
 	// time (an unknown authMode is a 400 at save, never silently ignored at
 	// chat time - and a bad value inside a store file fails the whole store
 	// closed like any other malformed field). Defaults are OMITTED from the
@@ -288,8 +288,8 @@ function keyLast4(apiKey) {
 }
 
 /**
- * Masked advanced-auth hints for USER rows only (Kyma catalog rule
- * extended, aoi-advanced-auth-v0): authMode ships only when 'raw' (the
+ * Masked advanced-auth hints for USER rows only (catalog privacy rule
+ * extended, 2026-11-21): authMode ships only when 'raw' (the
  * default stays byte-identical to the historic row shape), extra header
  * NAMES may be echoed, their VALUES never; the UA ships as a boolean flag
  * only. The manager UI renders masked values from these - the raw values
@@ -302,7 +302,7 @@ function attachMaskedAuth(row, out) {
 }
 
 /**
- * The client-facing catalog (Kyma catalog rule): operator rows ship
+ * The client-facing catalog (catalog privacy rule): operator rows ship
  * {key,label,source}; user rows additionally {status,hasKey?,keyLast4?}.
  * Endpoint fields and key VALUES of stored rows never leave this module
  * except through resolveModelSelection's server-internal entry hand-off
@@ -604,7 +604,7 @@ export function validateProbeShape(body) {
 			apiKey: entry.apiKey,
 			maxTokens: entry.maxTokens,
 			// probe carries the FULL auth config so Test validates the
-			// exotic shape exactly as chat will send it (aoi-advanced-auth-v0)
+			// exotic shape exactly as chat will send it
 			...(entry.authMode ? { authMode: entry.authMode } : {}),
 			...(entry.extraHeaders ? { extraHeaders: entry.extraHeaders } : {}),
 			...(entry.userAgent ? { userAgent: entry.userAgent } : {})

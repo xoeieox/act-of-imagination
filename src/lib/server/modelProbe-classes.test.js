@@ -1,7 +1,7 @@
 /**
- * modelProbe error classes (aoi-draftfix, 2026-11-21).
+ * modelProbe error classes (fixed 2026-11-21).
  *
- * Erah's pap endpoint is Mac-loopback bound: from the server it fails
+ * A loopback-bound endpoint that is down fails from the server
  * with a refused connection (curl-7 class), and the OLD catch line
  * 'chat probe failed (timeout or transport error)' blurred three
  * different failure classes into one shrug. probeModelConfig now

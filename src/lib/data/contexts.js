@@ -1,10 +1,9 @@
 /**
  * System contexts - situational lenses for examining personal material
  *
- * The four fixed contexts from the design (Act-of-Imagination-Design.md,
- * Arrangement Mode UI: [meeting / conflict / discovery / transformation]).
- * Erah's ruling (2026-11-21, AS-DESIGNED): the system contexts are exactly
- * these four - no user-built condition system.
+ * The design fixes exactly four system contexts
+ * (meeting / conflict / discovery / transformation) - no user-built
+ * condition system (design ruling, 2026-11-21).
  */
 
 export const SYSTEM_CONTEXTS = [

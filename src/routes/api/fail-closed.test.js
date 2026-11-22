@@ -1,5 +1,5 @@
 /**
- * Fail-closed route tests (aoi-lane-swap-v0, invariant I-2 / DoD #3).
+ * Fail-closed route tests (invariant I-2).
  *
  * With no AOI_LLM_* env configured, every API route must answer the
  * machine-readable 501 shape - no default endpoint, no silent fallback.

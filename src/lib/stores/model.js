@@ -1,10 +1,10 @@
 /**
- * Model selector store (aoi-modelselector-v0, 2026-11-21).
+ * Model selector store (2026-11-21).
  *
  * Client-side counterpart of the server model registry: holds the
  * [{key,label}] catalog fetched from /api/models (the only catalog data
  * that can ever reach a browser - no keys, model ids, or base urls,
- * Kyma catalog rule) and the per-browser persisted selection under
+ * catalog privacy rule) and the per-browser persisted selection under
  * localStorage `aoi-model-v1`.
  *
  * Posture rules (locked by src/lib/model-selection.test.js):

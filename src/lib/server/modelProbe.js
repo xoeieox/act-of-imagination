@@ -1,11 +1,11 @@
 /**
- * Connection probe for the model manager (aoi-model-manager-v0, 2026-11-21).
+ * Connection probe for the model manager (2026-11-21).
  *
  * Deliberately imports no filesystem module at all (locked by
  * check-invariants I-9): the test path can never persist anything - probe
  * payloads live only for the duration of the request.
  *
- * Kyma relay lesson: a bare 404 on GET {base}/models while chat works is
+ * Relay lesson: a bare 404 on GET {base}/models while chat works is
  * a KNOWN relay quirk, so the probe runs GET {base}/models FIRST and a
  * minimal chat round-trip SECOND, and reports which leg(s) passed. The
  * chat leg is the decisive verdict: ok=true only when a minimal
@@ -61,9 +61,9 @@ function firstModelId(data) {
 
 /**
  * Classify a thrown fetch error into an honest failure class so the
- * verdict line matches what actually happened (Erah bug, 2026-11-21:
- * a refused connection on his Mac-loopback pap endpoint must read as
- * transport-unreachable, not as a generic probe failure).
+ * verdict line matches what actually happened (fixed 2026-11-21: a
+ * refused connection must read as transport-unreachable, not as a
+ * generic probe failure).
  *   'timeout'    - the probe timer aborted the request
  *   'transport'  - curl-7-style: connection refused / host unreachable
  *   'unknown'    - neither (never claims a class it cannot support)
@@ -87,7 +87,7 @@ function classifyProbeError(err, timedOut) {
 /**
  * Probe one OpenAI-compatible config {baseUrl, model, apiKey?, maxTokens?}
  * plus the advanced-auth trio {authMode?, extraHeaders?, userAgent?}
- * (aoi-advanced-auth-v0): the probe carries the FULL auth config so a
+ * (2026-11-21): the probe carries the FULL auth config so a
  * passing Test proves the exotic wire shape too; every advanced VALUE
  * is redaction-list material.
  * Returns { ok, latencyMs, leg, sample?, error? } where leg is
@@ -107,7 +107,7 @@ export async function probeModelConfig(config, { fetchImpl, timeoutMs = TIMEOUT_
 	const model = String(config.model || '');
 	const apiKey = typeof config.apiKey === 'string' && config.apiKey !== '' ? config.apiKey : null;
 	const headers = { 'content-type': 'application/json' };
-	// Advanced auth (aoi-advanced-auth-v0): the probe runs the row's FULL
+	// Advanced auth: the probe runs the row's FULL
 	// auth config, so Test validates exactly the shape chat will send:
 	// 'raw' ships the key verbatim (no 'Bearer ' prefix), extraHeaders
 	// merge onto both legs, a UA override replaces fetch's default. Every
@@ -136,7 +136,7 @@ export async function probeModelConfig(config, { fetchImpl, timeoutMs = TIMEOUT_
 		secretValues.push(userAgentValue);
 	}
 
-	// Leg 1: GET {base}/models (the Kyma first probe).
+	// Leg 1: GET {base}/models (the listing probe).
 	let modelsOk = false;
 	let modelsStatus;
 	let modelsSample = null;

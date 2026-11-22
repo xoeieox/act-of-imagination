@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * Invariant gate for aoi-repo-polish-v0 (spec sec 6, DoD #4).
+ * Invariant gate (CI).
  *
  * Checks (all on TRACKED files, via `git ls-files`):
  *
@@ -11,9 +11,8 @@
  *             Literal http(s) hosts in src/**\/*.js (the logic files where
  *             endpoints live) must be loopback only: localhost / 127.0.0.1 / ::1
  *             - exact literals, no pattern escape (F-2).
- *             Recorded deliberate deviations from the spec sec 4 / I-1 grep
- *             carve-outs (aoi-repo-polish-v0), accepted by the PR #3 reviewer
- *             2026-11-06 cycle 1:
+ *             Recorded deliberate deviations from the original grep
+ *             carve-outs, accepted during the 2026-11-06 review cycle:
  *             - D1 (stricter than spec): spec excludes tests from the grep;
  *               the named-pin scan here does NOT, so a future test file
  *               cannot hardcode a real pin. The literal-host scan keeps the
@@ -141,7 +140,7 @@ report(
 );
 
 // ---- I-6b: SENSITIVE_ENV_STRINGS absent from client bundle output (post-build) ----
-// aoi-model-selector-v0: the token set now covers the lane env family AND
+// The token set now covers the lane env family AND
 // the registry env name (AOI_MODELS_ + JSON) - neither may ever appear in
 // shipped client bytes.
 const SENSITIVE_ENV_STRINGS = ['AOI_' + 'LLM_', 'AOI_MODELS_' + 'JSON'];
@@ -177,8 +176,8 @@ if (existsSync(clientOut)) {
 	});
 }
 
-// ---- I-8: model-registry invariants (aoi-model-selector-v0, 2026-11-21) ----
-// Kyma catalog rule, made mechanical. I-8a (browser-reachable sources may
+// ---- I-8: model-registry invariants (2026-11-21) ----
+// Catalog privacy rule, made mechanical. I-8a (browser-reachable sources may
 // not even name the registry env var) runs below, after the I-7 scan set
 // (i7Files) is defined. I-8b:
 //  the catalog route carries only {key,label}: its source must not
@@ -197,10 +196,10 @@ report(
 );
 
 // ---- I-7: no direct crypto.randomUUID in browser-reachable sources ----
-// aoi-uuidfix 2026-11-21: crypto.randomUUID exists only in secure contexts;
-// the app is routinely served on a plain-http tailnet origin where the bare
+// 2026-11-21 fix: crypto.randomUUID exists only in secure contexts;
+// the app is routinely served on plain-http origins where the bare
 // call is undefined and crashed arrangement creation. All client id-gen
-// goes through newId() in src/lib/uuid.js (aoi-fix 2026-11-17 doctrine).
+// goes through newId() in src/lib/uuid.js.
 // Browser-reachable scope per spec: src/routes/+page.svelte,
 // src/lib/components/**, src/lib/*.js, src/lib/stores/**. Tests are exempt
 // (same carve-out as other scans); src/lib/uuid.js is the sanctioned home.
@@ -232,7 +231,7 @@ report(
 );
 
 // ---- I-8a: registry env name never appears in browser-reachable sources ----
-// (aoi-model-selector-v0; reuses the I-7 scan set, concatenated pattern
+// (reuses the I-7 scan set, concatenated pattern
 // so this gate never self-matches - same idiom as I-7/F-1.)
 const REGISTRY_ENV_RE = new RegExp(['AOI', '_MODELS_', 'JSON'].join(''));
 const registryHits = [];
@@ -246,7 +245,7 @@ report(
 );
 
 // ---- I-8c: advanced-auth fields never named in /api/models* routes ----
-// (aoi-advanced-auth-v0, 2026-11-21): authMode / extraHeaders / userAgent are
+// (2026-11-21): authMode / extraHeaders / userAgent are
 // auth-value fields in the same family as apiKey/baseUrl (I-8b): the route
 // files stay thin delegates and must not even name these fields, so no route
 // can ever serialize a header or UA value. Masking lives in modelStore.js

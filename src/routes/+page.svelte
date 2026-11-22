@@ -1,6 +1,6 @@
 <script>
 	import { session, formingCards, surfacedCards, hasContent } from '$lib/stores/session.js';
-	// aoi-motion 2026-11-17: one motion language across screens - enter
+	// One motion language across screens - enter
 	// ~300ms ease-out, exit ~180ms ease-in.
 	import { fade, fly } from 'svelte/transition';
 	import { cubicOut, cubicIn } from 'svelte/easing';

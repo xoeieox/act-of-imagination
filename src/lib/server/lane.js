@@ -1,5 +1,5 @@
 /**
- * Server-only LLM lane module (aoi-lane-swap-v0).
+ * Server-only LLM lane module.
  *
  * The whole model-config surface is the environment:
  *   AOI_LLM_<LANE>_<FIELD>  with LANE in {CHAT, ARRANGE, SYNOPSIS}
@@ -221,12 +221,12 @@ export async function chat(
 	if (effectiveMaxTokens != null) body.max_tokens = effectiveMaxTokens;
 
 	const headers = { 'content-type': 'application/json' };
-	// Advanced auth (aoi-advanced-auth-v0, 2026-11-21): a server-validated
+	// Advanced auth (2026-11-21): a server-validated
 	// store entry may carry authMode/extraHeaders/userAgent. 'bearer' (and any
 	// absent field) keeps today's byte-identical wire shape; 'raw' ships the
-	// key verbatim with no 'Bearer ' prefix - the OpenCode Go relay shape
-	// (Kyma investigation 2026-11-02: MissingSessionID without the session
-	// header, 400 for Bearer-shaped auth). Extra headers merge on top (names
+	// key verbatim with no 'Bearer ' prefix - the raw-relay shape (some
+	// relays answer MissingSessionID without the session header, 400 for
+	// Bearer-shaped auth). Extra headers merge on top (names
 	// normalized lowercase at validate time); a UA override replaces fetch's
 	// default. Header VALUES are never logged or echoed by this module.
 	const authMode = modelOverride && modelOverride.authMode === 'raw' ? 'raw' : 'bearer';

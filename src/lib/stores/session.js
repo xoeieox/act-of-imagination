@@ -32,7 +32,7 @@ let saveTimeout = null;
 let lastSavedMessageCount = 0;
 let lastSavedCardCount = 0;
 
-// Restore hardening (aoi-fix 2026-11-17): localStorage outlives app versions.
+// Restore hardening: localStorage outlives app versions.
 // A message or card with a missing/renamed field must degrade to a default
 // or a sanitized entry - never crash the client render (blank after flash).
 function sanitizeMessage(raw) {

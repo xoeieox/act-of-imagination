@@ -1,12 +1,12 @@
 /**
  * Arrangement id creation must survive non-secure-context clients
- * (aoi-uuidfix 2026-11-21).
+ * (fixed 2026-11-21).
  *
- * Repro (Erah's browser test, Safari-style, on the plain-http tailnet
- * origin): saving a witnessed arrangement threw 'crypto.randomUUID is not
- * a function ... undefined' - the Web API helper exists only in secure
- * contexts and the app is routinely served over plain http. Doctrine
- * (src/lib/uuid.js, aoi-fix 2026-11-17): every client id goes through
+ * Repro: on a plain-http origin, saving a witnessed arrangement threw
+ * 'crypto.randomUUID is not a function ... undefined' - the Web API
+ * helper exists only in secure contexts and the app is routinely served
+ * over plain http. Convention (src/lib/uuid.js): every client id goes
+ * through
  * newId(), which falls back to getRandomValues and only then to a
  * Math.random UUIDv4-shaped id.
  *
@@ -45,7 +45,7 @@ afterEach(() => {
 	vi.unstubAllGlobals();
 });
 
-describe('arrangement ids survive non-secure-context clients (aoi-uuidfix 2026-11-21)', () => {
+describe('arrangement ids survive non-secure-context clients', () => {
 	it('the save path is bound to newId, with no direct Web-API call', () => {
 		const text = src('arrangements.js');
 		expect(text).not.toMatch(/crypto\s*(?:\?)?\s*\.\s*random\s*UUID|msCrypto/);

@@ -49,7 +49,7 @@ Write a 1-2 sentence synopsis that captures what this assembly explores.`;
 				{ role: 'user', content: userPrompt }
 			],
 			// Budget must cover reasoning_content plus the synopsis itself on
-			// thinking lanes (aoi-fix 2026-11-17).
+			// thinking lanes.
 			maxTokens: 2048,
 			modelOverride: selection.entry
 		});

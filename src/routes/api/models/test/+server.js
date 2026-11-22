@@ -1,5 +1,5 @@
 /**
- * Connection test endpoint (aoi-model-manager-v0, 2026-11-21).
+ * Connection test endpoint (2026-11-21).
  *
  * POST /api/models/test {base URL, model ID, key?, max tokens?} -> {ok,
  * latencyMs, leg, sample?, error?}  (probe semantics in

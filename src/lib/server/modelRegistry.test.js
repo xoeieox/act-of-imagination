@@ -1,12 +1,12 @@
 /**
- * Model registry tests (aoi-model-selector-v0, 2026-11-21).
+ * Model registry tests (2026-11-21).
  *
  * The server-side contract for the runtime model selector:
  *   - parseRegistry: unset/empty -> hidden (empty, NOT invalid); malformed
  *     JSON / non-array / invalid entries / duplicate keys -> invalid
  *     (fail closed: /api/models 500s and selections 400 - decision
  *     recorded in the landing report).
- *   - registrySummary: the Kyma catalog rule - {key,label} only, sentinel
+ *   - registrySummary: the catalog privacy rule - {key,label} only, sentinel
  *     base url / model id / key values must never appear.
  *   - resolveModelSelection: absent -> lane path unchanged; unknown key /
  *     malformed registry / wrong-typed selection -> 400, never a silent
@@ -104,7 +104,7 @@ describe('parseRegistry', () => {
 	});
 });
 
-describe('registrySummary - the Kyma catalog rule', () => {
+describe('registrySummary - the catalog privacy rule', () => {
 	it('ships {key,label,source,hasKey?} ONLY - sentinel values never appear', () => {
 		const { models, invalid } = registrySummary({ env: REG_ENV });
 		expect(invalid).toBe(false);

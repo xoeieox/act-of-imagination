@@ -1,5 +1,5 @@
 /**
- * Dev panel gate, dev-mode posture (aoi-dev-panel-flag, 2026-11-21).
+ * Dev panel gate, dev-mode posture (2026-11-21).
  *
  * The dev-mode half of the gate is unchanged: with $app/environment dev
  * true (mocked), load() passes without any flag - the pre-existing

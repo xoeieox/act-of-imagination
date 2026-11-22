@@ -1,5 +1,5 @@
 <!--
-	Honest first run (aoi-repo-polish-v0 leg 2, sec 5.6 / F-3).
+	Honest first run.
 
 	The zero-lane state rendered by the shell's server load - it appears in
 	the initial HTML with zero API fetch. The hint text arrives as data from

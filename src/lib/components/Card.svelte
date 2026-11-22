@@ -86,7 +86,7 @@
 				</p>
 			{/if}
 
-			<!-- Expanded content (aoi-motion 2026-11-17: symmetric expand/collapse,
+			<!-- Expanded content (symmetric expand/collapse,
 			     grid-rows transition instead of mount/unmount so exit animates too) -->
 			<div class="card-expand" class:open={isExpanded}>
 				<div class="card-expand-inner">

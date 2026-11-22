@@ -1,15 +1,15 @@
 <script>
-	// Compact model selector + model management entry (aoi-modelselector-v0;
-	// upgraded by aoi-model-manager-v0, 2026-11-21, Erah-ratified design).
+	// Compact model selector + model management entry (design ratified
+	// 2026-11-21).
 	//
 	// The select renders ONLY when the combined catalog is non-empty
 	// ({#if} below - registry unconfigured = hidden = byte-identical to the
 	// pre-selector chrome). Labels + masked metadata (status badge, draft
 	// warning) are the only catalog content that can ever reach this
 	// component: rows are {key,label,source,status?,hasKey?,keyLast4?} and
-	// nothing else (Kyma catalog rule, invariant I-9).
+	// nothing else (catalog privacy rule, invariant I-9).
 	//
-	// Under the select, a 'Manage models' entry opens the full Kyma-style
+	// Under the select, a 'Manage models' entry opens the full in-app
 	// management panel (ModelManager): end users add/test/save their own
 	// models with no file editing. The entry is visible once the catalog
 	// has loaded, even when empty - an empty registry must still be

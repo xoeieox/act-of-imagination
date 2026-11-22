@@ -1,9 +1,9 @@
 /**
- * Dev test-data panel gate (aoi-dev-panel-flag, 2026-11-21).
+ * Dev test-data panel gate (2026-11-21).
  *
  * Fail-closed with an explicit operator runtime opt-in:
  *   - `dev` (vite dev-mode) - unchanged from the original build-time gate.
- *   - AOI_DEV_PANEL=1 - runtime opt-in for trusted local/tailnet instances
+ *   - AOI_DEV_PANEL=1 - runtime opt-in for trusted local or private-network instances
  *     (documented in .env.example / README). Read from process.env at
  *     request time on the server only, so operators flip it in the
  *     service env file and restart - no rebuild. Any other value

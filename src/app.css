@@ -142,14 +142,14 @@
   }
 }
 
-/* aoi-motion 2026-11-17: symmetric card expansion (grid-rows technique).
+/* Symmetric card expansion (grid-rows technique).
    Enter slower than exit, same easing family - one motion language. */
 .card-expand {
   display: grid;
   grid-template-rows: minmax(0, 0fr);
   opacity: 0;
   transition:
-		/* exit quicker than entry (aoi-motion: Erah's panel rule) */
+		/* exit quicker than entry */
     grid-template-rows 1s cubic-bezier(0.22, 1, 0.36, 1),
     opacity 750ms ease;
 }

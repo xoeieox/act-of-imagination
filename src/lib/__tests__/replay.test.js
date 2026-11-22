@@ -1,7 +1,7 @@
 /**
- * Card-formation prompt-replay suite (aoi-repo-polish-v0 leg 2, sec 5.4).
+ * Card-formation prompt-replay suite.
  *
- * Kyma lore-book pattern (kyma.git fixtures/lore-book/*): each YAML fixture
+ * Lore-book pattern (YAML fixtures): each YAML fixture
  * under fixtures/card-formation/ carries {name, lane, request, laneResponses,
  * expected}. The harness replays them against the real API routes with a
  * fake lane - canned OpenAI-compatible responses injected at the fetch seam,

@@ -1,5 +1,5 @@
 /**
- * Arrange prompt module unit tests (aoi-arrangement-play-v0).
+ * Arrange prompt module unit tests.
  *
  * Locks the design :335-348 prompt shape: slot positions, essences, depth
  * indicators, the gravitational-pull instruction, and the narrator contract

@@ -1,5 +1,5 @@
 <script>
-	// Kyma-style model management panel (aoi-model-manager-v0, 2026-11-21).
+	// In-app model management panel (2026-11-21).
 	//
 	// End users set up and test their own models entirely in the UI:
 	//   - operator rows are read-only (managed by file on the server);
@@ -17,7 +17,7 @@
 	//     combined registry exactly as before.
 	//
 	// The panel only ever sees {key,label,source,status,hasKey,keyLast4}
-	// rows (Kyma catalog rule): editing an existing row therefore shows
+	// rows (catalog privacy rule): editing an existing row therefore shows
 	// blank endpoint fields meaning "unchanged - type to replace".
 	import { fade } from 'svelte/transition';
 	import { cubicOut } from 'svelte/easing';
@@ -49,8 +49,8 @@
 	const formValid = $derived(label.trim() !== '' && modelId.trim() !== '' && endpointOk(endpoint));
 	const canSaveHealthy = $derived(formValid && verdict !== null && verdict.ok === true);
 	// Draft save is gated on form validity ONLY: any test outcome -
-	// pass, fail, timeout - leaves the draft path enabled (Erah bug,
-	// 2026-11-21: the old `verdict === null` gate disabled it post-test).
+	// pass, fail, timeout - leaves the draft path enabled (the old
+	// `verdict === null` gate disabled it post-test; fixed 2026-11-21).
 	const canSaveDraft = $derived(formValid);
 
 	function endpointOk(value) {
@@ -58,9 +58,9 @@
 		return /^https?:\/\//i.test(v);
 	}
 
-	/** Advanced-auth section state (aoi-advanced-auth-v0): collapsed by
+	/** Advanced-auth section state: collapsed by
 	 * default; values are user-typed only. The server never ships stored
-	 * header/UA VALUES back (Kyma catalog rule): the edit form renders the
+	 * header/UA VALUES back (catalog privacy rule): the edit form renders the
 	 * NAMES with masked values from the masked catalog hints
 	 * {authMode?, extraHeaderNames?, hasUserAgent?}; blank = the stored value
 	 * is preserved, the remove checkbox clears them explicitly. */
@@ -118,7 +118,7 @@
 		} else if (secret !== '') {
 			body.apiKey = secret;
 		}
-		// Advanced auth (aoi-advanced-auth-v0): fields ship only when the
+		// Advanced auth: fields ship only when the
 		// section was actually engaged, so a plain edit never re-writes the
 		// stored auth config. Blank = "keep the stored value" (server-side
 		// contract); the remove checkbox clears via explicit {} / ''.
@@ -368,7 +368,7 @@
 			bind:value={endpoint}
 			placeholder={form.mode === 'edit'
 				? '(unchanged - type to replace)'
-				: 'https://api.openai.com/v1 · https://openrouter.ai/api/v1 · http://<tailnet-ip>:8000/v1'}
+				: 'https://api.openai.com/v1 · https://openrouter.ai/api/v1 · http://<your-host>:8000/v1'}
 		/>
 		<label class="block text-xs text-silver-400 mb-1" for="aoi-mm-model">Model ID</label>
 		<input

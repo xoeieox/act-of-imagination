@@ -19,7 +19,7 @@ import { newId } from '$lib/uuid.js';
 const LOCAL_STORAGE_KEY = 'act-of-imagination-arrangements';
 
 /**
- * Availability ruling (Erah 2026-11-21): the arrangement screen is open
+ * Design ruling (2026-11-21): the arrangement screen is open
  * unconditionally - entries carry no card-count lock. Only GENERATING has a
  * floor: this many cards must be placed in the slots, and the UI explains
  * that in calm words rather than hiding the door.
@@ -69,9 +69,10 @@ function createArrangementsStore() {
 		// Persist a witnessed arrangement; returns the created record
 		save({ slots, context, narrative }) {
 			const arrangement = {
-				// newId, not the direct call: on plain-http origins (the routine
-				// tailnet case) the Web API random-uuid helper is undefined and a
-				// bare call crashed arrangement creation - aoi-uuidfix 2026-11-21.
+				// newId, not the direct call: the Web API random-uuid helper
+				// exists only in secure contexts and is undefined on plain-http
+				// origins - a bare call crashed arrangement creation (fixed
+				// 2026-11-21).
 				id: newId(),
 				slots: (Array.isArray(slots) ? slots.slice(0, 3) : []).map((card) =>
 					card && typeof card === 'object'

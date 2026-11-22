@@ -59,13 +59,13 @@ export async function POST({ request }) {
 		const result = await laneChat('arrange', {
 			messages,
 			// Budget must cover reasoning_content plus the narrative itself
-			// on thinking lanes (aoi-fix 2026-11-17). AOI_LLM_ARRANGE_MAX_TOKENS
+			// on thinking lanes). AOI_LLM_ARRANGE_MAX_TOKENS
 			// still wins per the lane table.
 			maxTokens: 8192,
 			modelOverride: selection.entry
 		});
 
-		// Whitespace-only narrative counts as none (aoi-fix 2026-11-17).
+		// Whitespace-only narrative counts as none.
 		if (!result.content || !result.content.trim()) {
 			throw new LaneUpstreamError('LLM lane "arrange": endpoint returned no narrative content');
 		}

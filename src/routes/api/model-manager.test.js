@@ -1,5 +1,5 @@
 /**
- * Model-manager route battery (aoi-model-manager-v0, 2026-11-21).
+ * Model-manager route battery (2026-11-21).
  *
  * HTTP-boundary contracts on a REAL temp store directory + fake lane
  * (fetch stubs, zero network): combined catalog shape, user-row CRUD
@@ -342,7 +342,7 @@ describe('POST /api/models/test (fake endpoints, zero real network)', () => {
 	});
 });
 
-describe('draft save after a FAILED test - API level (Erah bug 2026-11-21)', () => {
+describe('draft save after a FAILED test - API level (2026-11-21)', () => {
 	beforeEach(clearEnv);
 	afterEach(restoreEnv);
 
