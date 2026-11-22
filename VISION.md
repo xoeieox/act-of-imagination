@@ -159,17 +159,17 @@ This is how collective imagination works - not consensus, but proliferation and 
 
 ### Propagation
 
-Assemblies can travel through the Zephyrium ecosystem. Others encounter them, respond to them, build on them. Your vision of "post-scarcity community" meets someone else's "resilient neighborhood" and something new emerges.
+Assemblies can travel through the Lanterns ecosystem. Others encounter them, respond to them, build on them. Your vision of "post-scarcity community" meets someone else's "resilient neighborhood" and something new emerges.
 
 ---
 
-## The Zephyrium Journey
+## The Lanterns Journey
 
 ### Context Cards as First Travelers
 
 Context cards are more universal than personal cards. While your card "The Locked Door" is deeply personal, the context "Transition" is universal. Everyone experiences transition.
 
-User-created contexts will be the **first travelers** in the Zephyrium ecosystem:
+User-created contexts will be the **first travelers** in the Lanterns ecosystem:
 
 - Created through guided AI conversation (like personal cards)
 - Represent recurring life situations or particular lenses
@@ -186,8 +186,8 @@ The card returns transformed, wearing new clothes, or returns to say "we're not 
 
 This is private. Just you and the depths.
 
-**Upward Release (Zephyrium)**
-Like a paper lantern rising into the sky. The card has done its personal work and now goes to do work elsewhere. It enters the Zephyrium ecosystem with explicit consent - the user deliberately "sends it out."
+**Upward Release (Lanterns)**
+Like a paper lantern rising into the sky. The card has done its personal work and now goes to do work elsewhere. It enters the Lanterns ecosystem with explicit consent - the user deliberately "sends it out."
 
 The card travels, encounters other cards, participates in other people's arrangements (with mutual consent). The original creator can see where it's been - not as analytics, but as story:
 
@@ -195,7 +195,7 @@ _"Your card 'The Locked Door' was placed alongside 'The Patient Key' and 'The Ro
 
 ### The Pearl Metaphor
 
-These are pearls formed from internal irritations, as all good art is. Perfect seeds for stories and evolved works in Zephyrium. Deeply personal exploration becomes shared creative infrastructure.
+These are pearls formed from internal irritations, as all good art is. Perfect seeds for stories and evolved works in Lanterns. Deeply personal exploration becomes shared creative infrastructure.
 
 ### Return Journeys
 
@@ -307,9 +307,9 @@ A dedicated space for working with avoided material:
 
 ---
 
-## Part of Zephyrium
+## Part of Lanterns
 
-Act of Imagination serves as a **card genesis engine** for the Zephyrium ecosystem.
+Act of Imagination serves as a **card genesis engine** for the Lanterns ecosystem.
 
 ### The Flow
 
@@ -317,7 +317,7 @@ Act of Imagination serves as a **card genesis engine** for the Zephyrium ecosyst
 2. Material crystallizes into cards
 3. Cards are worked with, placed in arrangements, tested across contexts
 4. Heavy cards (those with demonstrated depth) can be released upward
-5. Cards enter Zephyrium, encounter other cards, participate in arrangements
+5. Cards enter Lanterns, encounter other cards, participate in arrangements
 6. Cards return with stories of their journeys
 7. Personal archetypes become Story Assets in a larger creative infrastructure
 
@@ -333,15 +333,15 @@ This isn't extractive - it's generative. Your cards remain yours. But they can a
 
 ### Current Stack
 
-- **SvelteKit 5** with Svelte 5 runes
+- **SvelteKit 2** with Svelte 5 runes
 - **Tailwind CSS** with moonlight-on-water palette
-- **Claude API** with tool use for card detection
+- **OpenAI-compatible LLM lanes** with tool use for card detection
 - **Supabase** for optional auth and persistence
 - **Vercel** for deployment
 
 ### AI System Design
 
-The conversation API uses Claude's tool use feature with three tools:
+The conversation API uses the configured lane model's tool-calling support with three tools:
 
 - `detect_forming_card` - When AI notices a theme/tension/figure forming
 - `deepen_card` - When something previously detected gains more substance
@@ -370,5 +370,5 @@ This allows natural card formation without rigid prompting.
 
 ---
 
-_Part of the Zephyrium ecosystem._
+_Part of the Lanterns ecosystem._
 _Document refined through exploratory dialogue, December 2024._

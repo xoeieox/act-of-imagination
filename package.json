@@ -5,10 +5,10 @@
   "description": "A local-first introspection tool: guided chat that forms cards, arrangement play, assemblies. Runs entirely on your own machine - env-only OpenAI-compatible lanes, fails closed when unconfigured.",
   "repository": {
     "type": "git",
-    "url": "http://100.100.52.102:3000/erah/act-of-imagination.git"
+    "url": "https://github.com/erah/act-of-imagination.git"
   },
   "bugs": {
-    "url": "http://100.100.52.102:3000/erah/act-of-imagination/issues"
+    "url": "https://github.com/erah/act-of-imagination/issues"
   },
   "engines": {
     "node": ">=20"

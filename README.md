@@ -16,7 +16,7 @@ someone else's cloud.
 
 If you operate your own instance and want the `/dev` test-data panel available on a
 production build, set `AOI_DEV_PANEL=1` in the server environment before starting it - on
-trusted local/tailnet instances only; with the flag unset (the default) `/dev` stays a
+trusted local or private-network instances only; with the flag unset (the default) `/dev` stays a
 404, and it must never be enabled on a public deployment.
 
 ### Choosing a model at runtime (operator registry)

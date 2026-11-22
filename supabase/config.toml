@@ -5,7 +5,7 @@ project_id = "act-of-imagination"
 
 [api]
 enabled = true
-# Port to use for the API URL - using 54331 to avoid conflict with inertia_app
+# Port to use for the API URL - using 54331 to avoid conflicts with other local projects
 port = 54331
 schemas = ["public", "graphql_public"]
 extra_search_path = ["public", "extensions"]
