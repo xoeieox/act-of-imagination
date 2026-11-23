@@ -159,17 +159,17 @@ This is how collective imagination works - not consensus, but proliferation and 
 
 ### Propagation
 
-Assemblies can travel through the Lanterns ecosystem. Others encounter them, respond to them, build on them. Your vision of "post-scarcity community" meets someone else's "resilient neighborhood" and something new emerges.
+Assemblies can travel through the transmutation platform (working name), connected to the Seams protocol. Others encounter them, respond to them, build on them. Your vision of "post-scarcity community" meets someone else's "resilient neighborhood" and something new emerges.
 
 ---
 
-## The Lanterns Journey
+## The Journey
 
 ### Context Cards as First Travelers
 
 Context cards are more universal than personal cards. While your card "The Locked Door" is deeply personal, the context "Transition" is universal. Everyone experiences transition.
 
-User-created contexts will be the **first travelers** in the Lanterns ecosystem:
+User-created contexts will be the **first travelers** beyond the personal:
 
 - Created through guided AI conversation (like personal cards)
 - Represent recurring life situations or particular lenses
@@ -186,8 +186,8 @@ The card returns transformed, wearing new clothes, or returns to say "we're not 
 
 This is private. Just you and the depths.
 
-**Upward Release (Lanterns)**
-Like a paper lantern rising into the sky. The card has done its personal work and now goes to do work elsewhere. It enters the Lanterns ecosystem with explicit consent - the user deliberately "sends it out."
+**Upward Release**
+Like a paper lantern rising into the sky. The card has done its personal work and now goes to do work elsewhere. It enters the transmutation platform with explicit consent - the user deliberately "sends it out."
 
 The card travels, encounters other cards, participates in other people's arrangements (with mutual consent). The original creator can see where it's been - not as analytics, but as story:
 
@@ -195,7 +195,7 @@ _"Your card 'The Locked Door' was placed alongside 'The Patient Key' and 'The Ro
 
 ### The Pearl Metaphor
 
-These are pearls formed from internal irritations, as all good art is. Perfect seeds for stories and evolved works in Lanterns. Deeply personal exploration becomes shared creative infrastructure.
+These are pearls formed from internal irritations, as all good art is. Perfect seeds for stories and evolved works in the wider world. Deeply personal exploration becomes shared creative infrastructure.
 
 ### Return Journeys
 
@@ -295,7 +295,7 @@ A dedicated space for working with avoided material:
 
 3. **Tangibility**: Cards should feel real. The water should feel deep. Interactions should have weight.
 
-4. **User agency**: The user decides when something becomes a card, which mode to enter, when to stop, how long to sit in darkness before following the lanterns home.
+4. **User agency**: The user decides when something becomes a card, which mode to enter, when to stop, how long to sit in darkness before releasing outward.
 
 5. **No gamification**: No points, streaks, achievements. The reward is insight.
 
@@ -307,9 +307,9 @@ A dedicated space for working with avoided material:
 
 ---
 
-## Part of Lanterns
+## Part of the Transmutation Platform (working name)
 
-Act of Imagination serves as a **card genesis engine** for the Lanterns ecosystem.
+Act of Imagination serves as a **card genesis engine** for the transmutation platform.
 
 ### The Flow
 
@@ -317,7 +317,7 @@ Act of Imagination serves as a **card genesis engine** for the Lanterns ecosyste
 2. Material crystallizes into cards
 3. Cards are worked with, placed in arrangements, tested across contexts
 4. Heavy cards (those with demonstrated depth) can be released upward
-5. Cards enter Lanterns, encounter other cards, participate in arrangements
+5. Cards enter the transmutation platform, encounter other cards, participate in arrangements
 6. Cards return with stories of their journeys
 7. Personal archetypes become Story Assets in a larger creative infrastructure
 
@@ -370,5 +370,5 @@ This allows natural card formation without rigid prompting.
 
 ---
 
-_Part of the Lanterns ecosystem._
+_Connected to the Seams protocol._
 _Document refined through exploratory dialogue, December 2024._
