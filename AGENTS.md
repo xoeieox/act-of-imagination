@@ -1,4 +1,4 @@
-# CLAUDE.md - act-of-imagination
+# AGENTS.md - act-of-imagination
 
 ## What this repo is
 
