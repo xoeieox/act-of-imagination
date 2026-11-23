@@ -15,7 +15,12 @@
 import { spawn } from 'node:child_process';
 
 const PORT = 5199;
-const BASE = `http://127.0.0.1:${PORT}`;
+// Explicit loopback binding: on GitHub Actions runners vite's default host
+// resolution never answers on 127.0.0.1 (the first two public CI runs died
+// with the child silent and GET / never served). Poll every loopback spelling
+// so the checker never depends on which family the runner prefers.
+const HOSTS = [`http://127.0.0.1:${PORT}`, `http://localhost:${PORT}`, `http://[::1]:${PORT}`];
+const BASE = HOSTS[0];
 
 // strip every lane var from the child env (fresh-clone, zero .env)
 const env = { ...process.env };
@@ -29,38 +34,58 @@ delete env.VITE_SUPABASE_ANON_KEY;
 // the same render path a deployed adapter runs for the first request.
 const child = spawn(
 	'node',
-	['node_modules/vite/bin/vite.js', 'preview', '--port', String(PORT), '--strictPort'],
+	[
+		'node_modules/vite/bin/vite.js',
+		'preview',
+		'--host',
+		'127.0.0.1',
+		'--port',
+		String(PORT),
+		'--strictPort'
+	],
 	{
 		env: { ...env, NODE_ENV: 'production' },
 		stdio: ['ignore', 'pipe', 'pipe']
 	}
 );
 
+let tail = ''; // last lines the child printed, for failure diagnostics
+const note = (s) => {
+	tail = (tail + s).slice(-4000);
+};
+
 const fail = (msg) => {
 	console.error(`FAIL  ${msg}`);
+	if (tail.trim()) console.error('---preview server output---\n' + tail.trimEnd());
 	child.kill('SIGKILL');
 	process.exit(1);
 };
 
 // keep both pipes draining so the child never blocks on output
-child.stdout.on('data', () => {});
+child.stdout.on('data', (d) => note(String(d)));
 child.stderr.on('data', (d) => {
 	const s = String(d);
+	note(s);
 	if (!/InNodeAdapter|adapter|warn/i.test(s)) console.error('[server]', s.trim());
 });
+child.on('exit', (code, signal) => {
+	fail(`preview server exited early (code=${code} signal=${signal}) - never served GET /`);
+});
 
-// Readiness by polling, not by parsing vite's boot banner: under CI=true the
-// preview CLI suppresses the banner (GitHub Actions sets CI=true; the first
-// public CI run failed on the old line-match), so only the server actually
+// Readiness by polling, not by parsing vite's boot banner: vite suppresses
+// the banner when it detects GitHub Actions (CI sets GITHUB_ACTIONS=true,
+// which killed the first public CI run), so only the server actually
 // answering is a trustworthy signal that it came up.
 async function waitUntilUp(deadlineMs) {
 	const t0 = Date.now();
 	while (Date.now() - t0 < deadlineMs) {
-		try {
-			const r = await fetch(`${BASE}/`, { signal: AbortSignal.timeout(2000) });
-			if (r.ok) return;
-		} catch {
-			/* not up yet */
+		for (const host of HOSTS) {
+			try {
+				const r = await fetch(`${host}/`, { signal: AbortSignal.timeout(2000) });
+				if (r.ok) return;
+			} catch {
+				/* not up yet */
+			}
 		}
 		await new Promise((res) => setTimeout(res, 500));
 	}
@@ -119,11 +144,10 @@ async function checks() {
 }
 
 const timer = setTimeout(
-	() => fail('hard timeout: honest first run did not finish within 60s'),
-	60000
+	() => fail('hard timeout: honest first run did not finish within 90s'),
+	90000
 );
 
-waitUntilUp(20000)
-	.catch((e) => fail(String(e && e.stack ? e.stack : e)))
+waitUntilUp(45000)
 	.then(checks)
 	.catch((e) => fail(String(e && e.stack ? e.stack : e)));
