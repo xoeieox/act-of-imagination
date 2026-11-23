@@ -120,6 +120,7 @@ describe('registrySummary - the catalog privacy rule', () => {
 
 	it('keyless operator row ships {key,label,source} - no hasKey', () => {
 		const env = {
+			AOI_MODEL_STORE_DIR: '/nonexistent-aoi-test-store', // hermetic: file-absent path
 			AOI_MODELS_JSON: JSON.stringify([
 				{
 					key: 'lane-chat',
