@@ -13,7 +13,6 @@
  * step. Exits non-zero with a reason on any violation.
  */
 import { spawn } from 'node:child_process';
-import { createInterface } from 'node:readline';
 
 const PORT = 5199;
 const BASE = `http://127.0.0.1:${PORT}`;
@@ -43,15 +42,30 @@ const fail = (msg) => {
 	process.exit(1);
 };
 
-// wait for the server line, then run assertions and exit (nothing lingers)
-const rl = createInterface({ input: child.stdout });
-let booted = false;
-const timer = setTimeout(() => fail('built preview server never came up within 20s'), 20000);
-
+// keep both pipes draining so the child never blocks on output
+child.stdout.on('data', () => {});
 child.stderr.on('data', (d) => {
 	const s = String(d);
 	if (!/InNodeAdapter|adapter|warn/i.test(s)) console.error('[server]', s.trim());
 });
+
+// Readiness by polling, not by parsing vite's boot banner: under CI=true the
+// preview CLI suppresses the banner (GitHub Actions sets CI=true; the first
+// public CI run failed on the old line-match), so only the server actually
+// answering is a trustworthy signal that it came up.
+async function waitUntilUp(deadlineMs) {
+	const t0 = Date.now();
+	while (Date.now() - t0 < deadlineMs) {
+		try {
+			const r = await fetch(`${BASE}/`, { signal: AbortSignal.timeout(2000) });
+			if (r.ok) return;
+		} catch {
+			/* not up yet */
+		}
+		await new Promise((res) => setTimeout(res, 500));
+	}
+	fail(`built preview server never answered GET / within ${deadlineMs / 1000}s`);
+}
 
 async function checks() {
 	// 1. the shell HTML surfaces the configure-a-lane state server-side
@@ -104,12 +118,12 @@ async function checks() {
 	process.exit(0);
 }
 
-rl.on('line', (line) => {
-	if (!booted && /Local:|listening|ready in/i.test(line)) {
-		booted = true;
-		checks().catch((e) => fail(String(e && e.stack ? e.stack : e)));
-	}
-});
-setTimeout(() => {
-	if (!booted) fail('server boot line never seen');
-}, 19000);
+const timer = setTimeout(
+	() => fail('hard timeout: honest first run did not finish within 60s'),
+	60000
+);
+
+waitUntilUp(20000)
+	.catch((e) => fail(String(e && e.stack ? e.stack : e)))
+	.then(checks)
+	.catch((e) => fail(String(e && e.stack ? e.stack : e)));
